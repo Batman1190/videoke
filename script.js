@@ -29,6 +29,18 @@ const appState = {
     sidebarHidden: JSON.parse(localStorage.getItem('sidebarHidden') || 'false')
 };
 
+// Filter function to only show videos with "videoke" in the title
+function filterVideokeVideos(videos) {
+    if (!videos || !Array.isArray(videos)) {
+        return [];
+    }
+    
+    return videos.filter(video => {
+        const title = video.snippet?.title || '';
+        return title.toLowerCase().includes('videoke');
+    });
+}
+
 // Load watch history from storage
 function loadWatchHistory() {
     const history = localStorage.getItem('watchHistory');
@@ -408,11 +420,33 @@ async function fetchTrendingVideos(region = 'US') {
                 console.log('API response received:', data);
                 if (data.items && data.items.length > 0) {
                     console.log('Found', data.items.length, 'videos');
-                    // Track list with trending results only when we are actually showing trending
-                    appState.currentList = data.items.map(v => v.id?.videoId || v.id).filter(Boolean);
-                    appState.currentIndex = -1;
-                    displayVideos(data.items);
-                    return; // Success, exit the function
+                    // Filter videos to only show those with "videoke" in the title
+                    const filteredVideos = filterVideokeVideos(data.items);
+                    console.log('After videoke filter:', filteredVideos.length, 'videos remain');
+                    
+                    if (filteredVideos.length > 0) {
+                        // Track list with filtered trending results
+                        appState.currentList = filteredVideos.map(v => v.id?.videoId || v.id).filter(Boolean);
+                        appState.currentIndex = -1;
+                        displayVideos(filteredVideos);
+                        return; // Success, exit the function
+                    } else {
+                        console.log('No videoke videos found in trending results');
+                        // Show message that no videoke videos are currently trending
+                        const videoContainer = document.getElementById('video-container');
+                        if (videoContainer) {
+                            videoContainer.innerHTML = `
+                                <div class="no-results">
+                                    <h3>No Videoke Videos Currently Trending</h3>
+                                    <p>Try searching for "videoke" to find karaoke videos!</p>
+                                    <button onclick="searchVideos('videoke')" class="retry-button">
+                                        Search Videoke Videos
+                                    </button>
+                                </div>
+                            `;
+                        }
+                        return;
+                    }
                 } else {
                     console.log('No videos found in API response');
                 }
@@ -678,10 +712,28 @@ async function searchVideosForSidebar(query) {
                 
                 // Process and display search results for sidebar
                 if (data.items && data.items.length > 0) {
-                    data.items.forEach(item => {
-                        const sidebarSearchCard = createSidebarSearchCard(item);
-                        sidebarResultsContainer.appendChild(sidebarSearchCard);
-                    });
+                    // Convert search results to video format and filter for videoke videos
+                    const videos = data.items.map(item => ({
+                        id: item.id.videoId,
+                        snippet: item.snippet
+                    }));
+                    
+                    const filteredVideos = filterVideokeVideos(videos);
+                    console.log('Sidebar search results after videoke filter:', filteredVideos.length, 'videos remain');
+                    
+                    if (filteredVideos.length > 0) {
+                        filteredVideos.forEach(video => {
+                            // Convert back to search result format for createSidebarSearchCard
+                            const searchItem = {
+                                id: { videoId: video.id },
+                                snippet: video.snippet
+                            };
+                            const sidebarSearchCard = createSidebarSearchCard(searchItem);
+                            sidebarResultsContainer.appendChild(sidebarSearchCard);
+                        });
+                    } else {
+                        sidebarResultsContainer.innerHTML = '<div class="no-results">No videoke videos found</div>';
+                    }
                 } else {
                     sidebarResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
                 }
@@ -975,21 +1027,36 @@ async function searchVideos(query) {
                 
                 // Process and display search results
                 if (data.items && data.items.length > 0) {
-                    // Track current list from search results (by ID) for correct autoplay order
-                    appState.currentList = data.items
-                        .map(item => item && item.id && item.id.videoId)
-                        .filter(Boolean);
-                    appState.currentIndex = -1;
-                    data.items.forEach(item => {
-                        // Convert search result format to video format
-                        const video = {
-                            id: item.id.videoId,
-                            snippet: item.snippet
-                        };
-                        const videoCard = createVideoCard(video);
-                        videoGrid.appendChild(videoCard);
-                    });
-                    videoContainer.appendChild(videoGrid);
+                    // Convert search results to video format and filter for videoke videos
+                    const videos = data.items.map(item => ({
+                        id: item.id.videoId,
+                        snippet: item.snippet
+                    }));
+                    
+                    const filteredVideos = filterVideokeVideos(videos);
+                    console.log('Search results after videoke filter:', filteredVideos.length, 'videos remain');
+                    
+                    if (filteredVideos.length > 0) {
+                        // Track current list from filtered search results (by ID) for correct autoplay order
+                        appState.currentList = filteredVideos
+                            .map(video => video.id)
+                            .filter(Boolean);
+                        appState.currentIndex = -1;
+                        
+                        filteredVideos.forEach(video => {
+                            const videoCard = createVideoCard(video);
+                            videoGrid.appendChild(videoCard);
+                        });
+                        videoContainer.appendChild(videoGrid);
+                    } else {
+                        videoContainer.innerHTML = `
+                            <div class="no-results">
+                                <h3>No Videoke Videos Found</h3>
+                                <p>No videos with "videoke" in the title were found for your search.</p>
+                                <p>Try searching for "videoke" or "karaoke" to find karaoke videos!</p>
+                            </div>
+                        `;
+                    }
                 } else {
                     videoContainer.innerHTML = '<div class="no-results">No videos found</div>';
                 }
@@ -1070,11 +1137,30 @@ async function searchVideosForQueue(query) {
                 
                 // Process and display search results for queue
                 if (data.items && data.items.length > 0) {
-                    appState.searchResults = data.items;
-                    data.items.forEach(item => {
-                        const searchResultCard = createSearchResultCard(item);
-                        searchResultsContainer.appendChild(searchResultCard);
-                    });
+                    // Convert search results to video format and filter for videoke videos
+                    const videos = data.items.map(item => ({
+                        id: item.id.videoId,
+                        snippet: item.snippet
+                    }));
+                    
+                    const filteredVideos = filterVideokeVideos(videos);
+                    console.log('Queue search results after videoke filter:', filteredVideos.length, 'videos remain');
+                    
+                    if (filteredVideos.length > 0) {
+                        // Convert back to search result format for appState.searchResults
+                        const filteredSearchResults = filteredVideos.map(video => ({
+                            id: { videoId: video.id },
+                            snippet: video.snippet
+                        }));
+                        
+                        appState.searchResults = filteredSearchResults;
+                        filteredSearchResults.forEach(item => {
+                            const searchResultCard = createSearchResultCard(item);
+                            searchResultsContainer.appendChild(searchResultCard);
+                        });
+                    } else {
+                        searchResultsContainer.innerHTML = '<div class="no-results">No videoke videos found</div>';
+                    }
                 } else {
                     searchResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
                 }
@@ -1154,10 +1240,28 @@ async function searchVideosForOverlay(query) {
                 
                 // Process and display search results for overlay
                 if (data.items && data.items.length > 0) {
-                    data.items.forEach(item => {
-                        const overlaySearchCard = createOverlaySearchCard(item);
-                        overlayResultsContainer.appendChild(overlaySearchCard);
-                    });
+                    // Convert search results to video format and filter for videoke videos
+                    const videos = data.items.map(item => ({
+                        id: item.id.videoId,
+                        snippet: item.snippet
+                    }));
+                    
+                    const filteredVideos = filterVideokeVideos(videos);
+                    console.log('Overlay search results after videoke filter:', filteredVideos.length, 'videos remain');
+                    
+                    if (filteredVideos.length > 0) {
+                        filteredVideos.forEach(video => {
+                            // Convert back to search result format for createOverlaySearchCard
+                            const searchItem = {
+                                id: { videoId: video.id },
+                                snippet: video.snippet
+                            };
+                            const overlaySearchCard = createOverlaySearchCard(searchItem);
+                            overlayResultsContainer.appendChild(overlaySearchCard);
+                        });
+                    } else {
+                        overlayResultsContainer.innerHTML = '<div class="no-results">No videoke videos found</div>';
+                    }
                 } else {
                     overlayResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
                 }
