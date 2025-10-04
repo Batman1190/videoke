@@ -29,6 +29,37 @@ const appState = {
     sidebarHidden: JSON.parse(localStorage.getItem('sidebarHidden') || 'false')
 };
 
+// Helper function to enhance search queries with videoke/karaoke keywords
+function enhanceSearchQuery(query) {
+    if (!query || typeof query !== 'string') {
+        return 'videoke karaoke';
+    }
+    
+    const trimmedQuery = query.trim();
+    const lowerQuery = trimmedQuery.toLowerCase();
+    
+    // Check if query already contains videoke or karaoke
+    const hasVideoke = lowerQuery.includes('videoke');
+    const hasKaraoke = lowerQuery.includes('karaoke');
+    
+    // If neither videoke nor karaoke is present, add both
+    if (!hasVideoke && !hasKaraoke) {
+        return `${trimmedQuery} videoke karaoke`;
+    }
+    // If only videoke is present, add karaoke
+    else if (hasVideoke && !hasKaraoke) {
+        return `${trimmedQuery} karaoke`;
+    }
+    // If only karaoke is present, add videoke
+    else if (!hasVideoke && hasKaraoke) {
+        return `${trimmedQuery} videoke`;
+    }
+    // Both are already present, return original query
+    else {
+        return trimmedQuery;
+    }
+}
+
 // Filter function to only show videos with "videoke" or "karaoke" in the title
 function filterVideokeVideos(videos) {
     if (!videos || !Array.isArray(videos)) {
@@ -403,7 +434,8 @@ async function fetchTrendingVideos(region = 'US') {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&regionCode=${region}&maxResults=24&key=${apiKey}`);
+                // Search for videoke/karaoke content instead of trending videos
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=videoke karaoke&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -421,25 +453,32 @@ async function fetchTrendingVideos(region = 'US') {
                 console.log('API response received:', data);
                 if (data.items && data.items.length > 0) {
                     console.log('Found', data.items.length, 'videos');
-                    // Filter videos to only show those with "videoke" in the title
-                    const filteredVideos = filterVideokeVideos(data.items);
+                    
+                    // Convert search results to video format
+                    const videos = data.items.map(item => ({
+                        id: item.id.videoId,
+                        snippet: item.snippet
+                    }));
+                    
+                    // Filter videos to only show those with "videoke" or "karaoke" in the title
+                    const filteredVideos = filterVideokeVideos(videos);
                     console.log('After videoke/karaoke filter:', filteredVideos.length, 'videos remain');
                     
                     if (filteredVideos.length > 0) {
-                        // Track list with filtered trending results
-                        appState.currentList = filteredVideos.map(v => v.id?.videoId || v.id).filter(Boolean);
+                        // Track list with filtered results
+                        appState.currentList = filteredVideos.map(v => v.id).filter(Boolean);
                         appState.currentIndex = -1;
                         displayVideos(filteredVideos);
                         return; // Success, exit the function
                     } else {
-                        console.log('No videoke/karaoke videos found in trending results');
-                        // Show message that no videoke/karaoke videos are currently trending
+                        console.log('No videoke/karaoke videos found in search results');
+                        // Show message that no videoke/karaoke videos were found
                         const videoContainer = document.getElementById('video-container');
                         if (videoContainer) {
                             videoContainer.innerHTML = `
                                 <div class="no-results">
-                                    <h3>No Videoke/Karaoke Videos Currently Trending</h3>
-                                    <p>Try searching for "videoke" or "karaoke" to find karaoke videos!</p>
+                                    <h3>No Videoke/Karaoke Videos Found</h3>
+                                    <p>No karaoke videos are currently available. Try searching for specific songs!</p>
                                     <button onclick="searchVideos('karaoke')" class="retry-button">
                                         Search Karaoke Videos
                                     </button>
@@ -639,8 +678,8 @@ function updateQueueDisplay() {
             `;
             
             // Add event listeners
-            const playBtn = queueItem.querySelector('.play');
-            const removeBtn = queueItem.querySelector('.remove');
+            const playBtn = queueItem.querySelector('.queue-action-btn.play');
+            const removeBtn = queueItem.querySelector('.queue-action-btn.remove');
             
             playBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -675,6 +714,10 @@ async function searchVideosForSidebar(query) {
         }
         console.log('Sidebar results container found:', sidebarResultsContainer);
 
+        // Enhance the search query with videoke/karaoke keywords
+        const enhancedQuery = enhanceSearchQuery(query);
+        console.log(`Sidebar - Original query: "${query}" -> Enhanced query: "${enhancedQuery}"`);
+
         // Show loading in sidebar search results
         sidebarResultsContainer.innerHTML = `
             <div class="loading">
@@ -692,7 +735,7 @@ async function searchVideosForSidebar(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Sidebar search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(enhancedQuery)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -901,8 +944,8 @@ function updateSidebarQueueDisplay() {
             `;
             
             // Add event listeners
-            const playBtn = sidebarQueueItem.querySelector('.play');
-            const removeBtn = sidebarQueueItem.querySelector('.remove');
+            const playBtn = sidebarQueueItem.querySelector('.sidebar-queue-action-btn.play');
+            const removeBtn = sidebarQueueItem.querySelector('.sidebar-queue-action-btn.remove');
             
             console.log('Setting up sidebar queue item buttons for:', video.title);
             console.log('Play button found:', !!playBtn);
@@ -987,6 +1030,10 @@ async function searchVideos(query) {
         const videoContainer = document.getElementById('video-container');
         if (!videoContainer) return;
 
+        // Enhance the search query with videoke/karaoke keywords
+        const enhancedQuery = enhanceSearchQuery(query);
+        console.log(`Original query: "${query}" -> Enhanced query: "${enhancedQuery}"`);
+
         showLoading();
         videoContainer.innerHTML = `
             <div class="loading">
@@ -1003,7 +1050,7 @@ async function searchVideos(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${encodeURIComponent(enhancedQuery)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -1100,6 +1147,10 @@ async function searchVideosForQueue(query) {
         const searchResultsContainer = document.getElementById('search-results');
         if (!searchResultsContainer) return;
 
+        // Enhance the search query with videoke/karaoke keywords
+        const enhancedQuery = enhanceSearchQuery(query);
+        console.log(`Queue - Original query: "${query}" -> Enhanced query: "${enhancedQuery}"`);
+
         // Show loading in search results
         searchResultsContainer.innerHTML = `
             <div class="loading">
@@ -1117,7 +1168,7 @@ async function searchVideosForQueue(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Queue search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(enhancedQuery)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -1203,6 +1254,10 @@ async function searchVideosForOverlay(query) {
         const overlayResultsContainer = document.getElementById('overlay-search-results');
         if (!overlayResultsContainer) return;
 
+        // Enhance the search query with videoke/karaoke keywords
+        const enhancedQuery = enhanceSearchQuery(query);
+        console.log(`Overlay - Original query: "${query}" -> Enhanced query: "${enhancedQuery}"`);
+
         // Show loading in overlay search results
         overlayResultsContainer.innerHTML = `
             <div class="loading">
@@ -1220,7 +1275,7 @@ async function searchVideosForOverlay(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Overlay search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(enhancedQuery)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
