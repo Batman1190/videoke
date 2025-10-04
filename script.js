@@ -266,6 +266,7 @@ function clearVideoQueue() {
     appState.videoQueue = [];
     saveVideoQueue();
     updateQueueDisplay();
+    updateSidebarQueueDisplay();
     updateMobileQueueBadge();
     updateClearAllButtonState();
     updatePlayNextButtonState();
@@ -915,6 +916,7 @@ function updateSidebarQueueDisplay() {
                 <small>Search and add videos to your queue</small>
             </div>
         `;
+        console.log('Empty queue message set');
     } else {
         console.log('Showing queue items:', appState.videoQueue);
         sidebarQueueContainer.innerHTML = '';
@@ -1827,8 +1829,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (confirmed) {
                     const videoCount = appState.videoQueue.length;
-                    console.log('Clearing all videos from queue');
+                    console.log('Clearing all videos from queue, count:', videoCount);
+                    console.log('Queue before clear:', appState.videoQueue);
+                    
                     clearVideoQueue();
+                    
+                    console.log('Queue after clear:', appState.videoQueue);
+                    console.log('Sidebar queue container:', document.getElementById('sidebar-video-queue'));
                     
                     // Show success message
                     showSuccessMessage(`Cleared ${videoCount} videos from queue`);
