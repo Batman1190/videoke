@@ -2896,7 +2896,170 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Starting fetchTrendingVideos...');
         fetchTrendingVideos('US');
     }, 100);
+    
+    // Initialize mobile optimizations
+    initializeMobileOptimizations();
 });
+
+// Mobile-specific optimizations
+function initializeMobileOptimizations() {
+    console.log('Initializing mobile optimizations...');
+    
+    // Prevent zoom on double tap for iOS
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+    
+    // Add touch feedback for interactive elements
+    const addTouchFeedback = () => {
+        const touchElements = document.querySelectorAll('.video-card, .control-button, .sidebar-queue-action-btn, .queue-action-btn, .mobile-menu-toggle, .mobile-queue-toggle, .sidebar-add-to-queue-btn, .sidebar-play-now-btn');
+        touchElements.forEach(element => {
+            element.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.98)';
+                this.style.transition = 'transform 0.1s ease';
+            });
+            
+            element.addEventListener('touchend', function() {
+                this.style.transform = 'scale(1)';
+            });
+            
+            element.addEventListener('touchcancel', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    };
+    
+    // Add touch feedback to existing elements
+    addTouchFeedback();
+    
+    // Add touch feedback to dynamically created elements
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) { // Element node
+                        if (node.classList && (node.classList.contains('video-card') || node.classList.contains('sidebar-queue-item'))) {
+                            addTouchFeedback();
+                        }
+                    }
+                });
+            }
+        });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    
+    // Improve mobile scrolling performance
+    document.body.style.webkitOverflowScrolling = 'touch';
+    
+    // Handle mobile orientation changes
+    window.addEventListener('orientationchange', function() {
+        setTimeout(function() {
+            // Recalculate video player dimensions
+            const videoPlayer = document.getElementById('video-player');
+            if (videoPlayer) {
+                videoPlayer.style.height = window.innerHeight + 'px';
+            }
+            
+            // Recalculate sidebar dimensions
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.style.height = window.innerHeight + 'px';
+            }
+        }, 100);
+    });
+    
+    // Add pull-to-refresh functionality for mobile
+    let startY = 0;
+    let currentY = 0;
+    let isPulling = false;
+    
+    document.addEventListener('touchstart', function(e) {
+        if (window.scrollY === 0) {
+            startY = e.touches[0].clientY;
+            isPulling = true;
+        }
+    });
+    
+    document.addEventListener('touchmove', function(e) {
+        if (isPulling && window.scrollY === 0) {
+            currentY = e.touches[0].clientY;
+            const pullDistance = currentY - startY;
+            
+            if (pullDistance > 0 && pullDistance < 100) {
+                // Add visual feedback for pull-to-refresh
+                document.body.style.transform = `translateY(${pullDistance * 0.5}px)`;
+            }
+        }
+    });
+    
+    document.addEventListener('touchend', function(e) {
+        if (isPulling) {
+            const pullDistance = currentY - startY;
+            
+            if (pullDistance > 80) {
+                // Trigger refresh
+                location.reload();
+            } else {
+                // Reset position
+                document.body.style.transform = 'translateY(0)';
+            }
+            
+            isPulling = false;
+        }
+    });
+    
+    // Optimize video loading for mobile
+    const optimizeVideoLoading = () => {
+        const videoCards = document.querySelectorAll('.video-card');
+        videoCards.forEach(card => {
+            const thumbnail = card.querySelector('.video-thumbnail');
+            if (thumbnail) {
+                // Add loading="lazy" for better performance
+                thumbnail.loading = 'lazy';
+                
+                // Add error handling for failed image loads
+                thumbnail.addEventListener('error', function() {
+                    this.src = 'images/placeholder.jpg';
+                });
+            }
+        });
+    };
+    
+    // Run optimization when videos are loaded
+    setTimeout(optimizeVideoLoading, 1000);
+    
+    // Re-run optimization when new videos are added
+    const videoObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1 && node.classList && node.classList.contains('video-card')) {
+                        optimizeVideoLoading();
+                    }
+                });
+            }
+        });
+    });
+    
+    const videoContainer = document.getElementById('video-container');
+    if (videoContainer) {
+        videoObserver.observe(videoContainer, {
+            childList: true,
+            subtree: true
+        });
+    }
+    
+    console.log('Mobile optimizations initialized successfully');
+}
 
 // Also try immediately
 console.log('Trying immediate fetchTrendingVideos...');
