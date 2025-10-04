@@ -6,7 +6,7 @@ const videoContainer = document.getElementById('video-container');
 const videoPlayerContainer = document.getElementById('video-player-container');
 const closePlayerBtn = document.getElementById('close-player');
 const searchInput = document.querySelector('.search-box input');
-const searchButton = document.querySelector('.search-box button');
+const searchButton = document.querySelector('.search-box .search-btn');
 const loadingSpinner = document.getElementById('loading');
 
 // App State
@@ -1566,7 +1566,7 @@ const voiceSearch = new VoiceSearch();
 document.addEventListener('DOMContentLoaded', function() {
     // Existing search listeners
     const searchInput = document.querySelector('.search-box input');
-    const searchButton = document.querySelector('.search-box button');
+    const searchButton = document.querySelector('.search-box .search-btn');
 
     // Video search for queue listeners (removed - now using sidebar search)
 

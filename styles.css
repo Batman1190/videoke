@@ -152,7 +152,13 @@ body {
     border: 0;
     outline: 0;
     background: transparent;
-    color: var(--primary-color);
+    color: #2c1810;
+    font-size: 16px;
+    padding: 8px 12px;
+}
+
+.search-box input::placeholder {
+    color: #7f8c8d;
 }
 
 .search-box button {
@@ -160,6 +166,19 @@ body {
     background: transparent;
     cursor: pointer;
     color: var(--secondary-color);
+    font-size: 18px;
+    padding: 8px;
+    transition: color 0.3s ease;
+}
+
+.search-box .search-btn {
+    color: var(--accent-blue);
+    margin-right: 8px;
+}
+
+.search-box .search-btn:hover {
+    color: var(--light-blue);
+    transform: scale(1.1);
 }
 
 .voice-search-btn {
@@ -3099,24 +3118,63 @@ body {
     }
     
     .sidebar-search-results {
-        max-height: 250px;
+        max-height: none;
+        padding: 0 15px;
     }
     
     .sidebar-search-result-card {
-        padding: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
     
     .sidebar-search-result-thumbnail {
-        height: 70px;
+        width: 100%;
+        height: 120px;
+        border-radius: 8px;
+        object-fit: cover;
     }
     
     .sidebar-search-result-title {
-        font-size: 13px;
-        line-height: 1.3;
+        font-size: 16px;
+        line-height: 1.4;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        color: var(--primary-color);
+        font-weight: 500;
     }
     
     .sidebar-search-result-channel {
-        font-size: 11px;
+        font-size: 14px;
+        color: var(--secondary-color);
+        margin-bottom: 12px;
+    }
+    
+    .sidebar-search-result-actions {
+        gap: 12px;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .sidebar-add-to-queue-btn,
+    .sidebar-play-now-btn {
+        flex: 1;
+        min-width: 60px;
+        min-height: 48px;
+        font-size: 14px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 16px;
     }
     
     /* Mobile queue items */
@@ -3434,17 +3492,90 @@ body {
     /* Mobile search results */
     .sidebar-search-results {
         padding: 0 20px;
+        max-height: none;
     }
     
     .sidebar-search-result-card {
-        margin-bottom: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.08);
         border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
         overflow: hidden;
     }
     
     .sidebar-search-result-card:active {
         transform: scale(0.98);
         transition: transform 0.1s ease;
+    }
+    
+    .sidebar-search-result-thumbnail {
+        width: 100%;
+        height: 120px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+    
+    .sidebar-search-result-title {
+        font-size: 16px;
+        line-height: 1.4;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+    
+    .sidebar-search-result-channel {
+        font-size: 14px;
+        color: var(--secondary-color);
+        margin-bottom: 12px;
+    }
+    
+    .sidebar-search-result-actions {
+        gap: 12px;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .sidebar-add-to-queue-btn,
+    .sidebar-play-now-btn {
+        flex: 1;
+        min-width: 60px;
+        min-height: 48px;
+        font-size: 14px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 16px;
+        background: var(--accent-orange);
+        color: white;
+        border: none;
+        transition: all 0.2s ease;
+    }
+    
+    .sidebar-add-to-queue-btn:hover,
+    .sidebar-play-now-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .sidebar-play-now-btn {
+        background: var(--accent-blue);
+    }
+    
+    .sidebar-play-now-btn:hover {
+        background: var(--light-blue);
+    }
+    
+    .sidebar-add-to-queue-btn:hover {
+        background: var(--light-orange);
     }
     
     /* Mobile player controls */
