@@ -26,7 +26,9 @@ const appState = {
     // Search results for video reservation
     searchResults: [],
     // Sidebar visibility state
-    sidebarHidden: JSON.parse(localStorage.getItem('sidebarHidden') || 'false')
+    sidebarHidden: JSON.parse(localStorage.getItem('sidebarHidden') || 'false'),
+    // Desktop view mode state
+    forceDesktopView: JSON.parse(localStorage.getItem('forceDesktopView') || 'false')
 };
 
 // Helper function to enhance search queries with videoke/karaoke keywords
@@ -272,6 +274,66 @@ function clearVideoQueue() {
     updatePlayNextButtonState();
 }
 
+// Desktop View Toggle Functions
+function toggleDesktopView() {
+    appState.forceDesktopView = !appState.forceDesktopView;
+    localStorage.setItem('forceDesktopView', appState.forceDesktopView);
+    
+    const body = document.body;
+    const toggleButton = document.getElementById('desktop-view-toggle');
+    
+    if (appState.forceDesktopView) {
+        body.classList.add('force-desktop-view');
+        toggleButton.classList.add('active');
+        toggleButton.title = 'Switch to Mobile View';
+        
+        // Update viewport meta tag for desktop view
+        updateViewportMeta(true);
+        
+        console.log('Desktop view enabled');
+    } else {
+        body.classList.remove('force-desktop-view');
+        toggleButton.classList.remove('active');
+        toggleButton.title = 'Toggle Desktop View';
+        
+        // Restore original viewport meta tag
+        updateViewportMeta(false);
+        
+        console.log('Mobile view restored');
+    }
+}
+
+function updateViewportMeta(isDesktopView) {
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+        if (isDesktopView) {
+            // Force desktop viewport
+            viewportMeta.setAttribute('content', 'width=1200, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
+        } else {
+            // Restore mobile viewport
+            viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover');
+        }
+    }
+}
+
+function initializeDesktopView() {
+    const toggleButton = document.getElementById('desktop-view-toggle');
+    
+    if (appState.forceDesktopView) {
+        document.body.classList.add('force-desktop-view');
+        toggleButton.classList.add('active');
+        toggleButton.title = 'Switch to Mobile View';
+        updateViewportMeta(true);
+    } else {
+        toggleButton.title = 'Toggle Desktop View';
+    }
+    
+    // Add click event listener
+    toggleButton.addEventListener('click', toggleDesktopView);
+    
+    console.log('Desktop view toggle initialized:', appState.forceDesktopView);
+}
+
 function getNextQueuedVideo() {
     if (appState.videoQueue.length > 0) {
         const nextVideo = appState.videoQueue.shift();
@@ -468,9 +530,9 @@ async function fetchTrendingVideos(region = 'US') {
                     if (filteredVideos.length > 0) {
                         // Track list with filtered results
                         appState.currentList = filteredVideos.map(v => v.id).filter(Boolean);
-                        appState.currentIndex = -1;
+                    appState.currentIndex = -1;
                         displayVideos(filteredVideos);
-                        return; // Success, exit the function
+                    return; // Success, exit the function
                     } else {
                         console.log('No videoke/karaoke videos found in search results');
                         // Show message that no videoke/karaoke videos were found
@@ -774,8 +836,8 @@ async function searchVideosForSidebar(query) {
                                 snippet: video.snippet
                             };
                             const sidebarSearchCard = createSidebarSearchCard(searchItem);
-                            sidebarResultsContainer.appendChild(sidebarSearchCard);
-                        });
+                        sidebarResultsContainer.appendChild(sidebarSearchCard);
+                    });
                     } else {
                         sidebarResultsContainer.innerHTML = '<div class="no-results">No videoke/karaoke videos found</div>';
                     }
@@ -1079,8 +1141,8 @@ async function searchVideos(query) {
                 if (data.items && data.items.length > 0) {
                     // Convert search results to video format and filter for videoke videos
                     const videos = data.items.map(item => ({
-                        id: item.id.videoId,
-                        snippet: item.snippet
+                            id: item.id.videoId,
+                            snippet: item.snippet
                     }));
                     
                     const filteredVideos = filterVideokeVideos(videos);
@@ -1094,10 +1156,10 @@ async function searchVideos(query) {
                         appState.currentIndex = -1;
                         
                         filteredVideos.forEach(video => {
-                            const videoCard = createVideoCard(video);
-                            videoGrid.appendChild(videoCard);
-                        });
-                        videoContainer.appendChild(videoGrid);
+                        const videoCard = createVideoCard(video);
+                        videoGrid.appendChild(videoCard);
+                    });
+                    videoContainer.appendChild(videoGrid);
                     } else {
                         videoContainer.innerHTML = `
                             <div class="no-results">
@@ -1209,9 +1271,9 @@ async function searchVideosForQueue(query) {
                         
                         appState.searchResults = filteredSearchResults;
                         filteredSearchResults.forEach(item => {
-                            const searchResultCard = createSearchResultCard(item);
-                            searchResultsContainer.appendChild(searchResultCard);
-                        });
+                        const searchResultCard = createSearchResultCard(item);
+                        searchResultsContainer.appendChild(searchResultCard);
+                    });
                     } else {
                         searchResultsContainer.innerHTML = '<div class="no-results">No videoke/karaoke videos found</div>';
                     }
@@ -1315,8 +1377,8 @@ async function searchVideosForOverlay(query) {
                                 snippet: video.snippet
                             };
                             const overlaySearchCard = createOverlaySearchCard(searchItem);
-                            overlayResultsContainer.appendChild(overlaySearchCard);
-                        });
+                        overlayResultsContainer.appendChild(overlaySearchCard);
+                    });
                     } else {
                         overlayResultsContainer.innerHTML = '<div class="no-results">No videoke/karaoke videos found</div>';
                     }
@@ -2906,6 +2968,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize mobile optimizations
     initializeMobileOptimizations();
+    
+    // Initialize desktop view toggle
+    initializeDesktopView();
 });
 
 // Mobile-specific optimizations
