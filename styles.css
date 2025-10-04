@@ -1,10 +1,10 @@
 /* Base Styles */
 :root {
-    --primary-color: #2c1810;
-    --secondary-color: #8e7cc3;
-    --background-color: #f3e5f5;
-    --hover-color: #e1bee7;
-    --border-color: #ce93d8;
+    --primary-color: #ffffff;
+    --secondary-color: #b39ddb;
+    --background-color: #2d1b69;
+    --hover-color: #4a2c7a;
+    --border-color: #5e35b1;
     --card-bg: rgba(255, 255, 255, 0.95);
     --accent-orange: #ff8c42;
     --accent-blue: #3498db;
@@ -15,9 +15,9 @@
     --error-red-light: #ff4444;
     --gray-medium: #6c757d;
     --gray-dark: #5a6268;
-    --violet-light: #f3e5f5;
-    --violet-medium: #e1bee7;
-    --violet-dark: #ce93d8;
+    --violet-light: #4a2c7a;
+    --violet-medium: #5e35b1;
+    --violet-dark: #7b1fa2;
 }
 
 /* Support Tagline */
@@ -142,7 +142,7 @@ body {
     border-radius: 25px;
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.9);
     width: 100%;
     max-width: 600px;
 }
@@ -363,10 +363,10 @@ body {
 .sidebar-search-input {
     flex: 1;
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.95);
     border: 1px solid var(--violet-dark);
     border-radius: 20px;
-    color: var(--primary-color);
+    color: #2c1810;
     font-size: 14px;
     outline: none;
     transition: all 0.3s ease;
@@ -382,7 +382,7 @@ body {
 }
 
 .sidebar-search-input::placeholder {
-    color: var(--secondary-color);
+    color: #7f8c8d;
 }
 
 .sidebar-search-btn {
@@ -410,7 +410,7 @@ body {
 
 .sidebar-voice-btn {
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.9);
     border: 1px solid var(--violet-dark);
     border-radius: 20px;
     color: var(--secondary-color);
@@ -434,7 +434,7 @@ body {
 
 .overlay-voice-btn {
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.9);
     border: 1px solid var(--violet-dark);
     border-radius: 8px;
     color: var(--secondary-color);
@@ -2318,8 +2318,8 @@ body {
 }
 
 #region-select {
-    background: rgba(255, 255, 255, 0.8);
-    color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.9);
+    color: #2c1810;
     border: 1px solid var(--border-color);
     padding: 8px 12px;
     border-radius: 20px;
@@ -2336,7 +2336,7 @@ body {
 
 #region-select option {
     background: rgba(255, 255, 255, 0.95);
-    color: var(--primary-color);
+    color: #2c1810;
 }
 
 /* Mobile Styles */

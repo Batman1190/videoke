@@ -29,7 +29,7 @@ const appState = {
     sidebarHidden: JSON.parse(localStorage.getItem('sidebarHidden') || 'false')
 };
 
-// Filter function to only show videos with "videoke" in the title
+// Filter function to only show videos with "videoke" or "karaoke" in the title
 function filterVideokeVideos(videos) {
     if (!videos || !Array.isArray(videos)) {
         return [];
@@ -37,7 +37,8 @@ function filterVideokeVideos(videos) {
     
     return videos.filter(video => {
         const title = video.snippet?.title || '';
-        return title.toLowerCase().includes('videoke');
+        const lowerTitle = title.toLowerCase();
+        return lowerTitle.includes('videoke') || lowerTitle.includes('karaoke');
     });
 }
 
@@ -422,7 +423,7 @@ async function fetchTrendingVideos(region = 'US') {
                     console.log('Found', data.items.length, 'videos');
                     // Filter videos to only show those with "videoke" in the title
                     const filteredVideos = filterVideokeVideos(data.items);
-                    console.log('After videoke filter:', filteredVideos.length, 'videos remain');
+                    console.log('After videoke/karaoke filter:', filteredVideos.length, 'videos remain');
                     
                     if (filteredVideos.length > 0) {
                         // Track list with filtered trending results
@@ -431,16 +432,16 @@ async function fetchTrendingVideos(region = 'US') {
                         displayVideos(filteredVideos);
                         return; // Success, exit the function
                     } else {
-                        console.log('No videoke videos found in trending results');
-                        // Show message that no videoke videos are currently trending
+                        console.log('No videoke/karaoke videos found in trending results');
+                        // Show message that no videoke/karaoke videos are currently trending
                         const videoContainer = document.getElementById('video-container');
                         if (videoContainer) {
                             videoContainer.innerHTML = `
                                 <div class="no-results">
-                                    <h3>No Videoke Videos Currently Trending</h3>
-                                    <p>Try searching for "videoke" to find karaoke videos!</p>
-                                    <button onclick="searchVideos('videoke')" class="retry-button">
-                                        Search Videoke Videos
+                                    <h3>No Videoke/Karaoke Videos Currently Trending</h3>
+                                    <p>Try searching for "videoke" or "karaoke" to find karaoke videos!</p>
+                                    <button onclick="searchVideos('karaoke')" class="retry-button">
+                                        Search Karaoke Videos
                                     </button>
                                 </div>
                             `;
@@ -719,7 +720,7 @@ async function searchVideosForSidebar(query) {
                     }));
                     
                     const filteredVideos = filterVideokeVideos(videos);
-                    console.log('Sidebar search results after videoke filter:', filteredVideos.length, 'videos remain');
+                    console.log('Sidebar search results after videoke/karaoke filter:', filteredVideos.length, 'videos remain');
                     
                     if (filteredVideos.length > 0) {
                         filteredVideos.forEach(video => {
@@ -732,7 +733,7 @@ async function searchVideosForSidebar(query) {
                             sidebarResultsContainer.appendChild(sidebarSearchCard);
                         });
                     } else {
-                        sidebarResultsContainer.innerHTML = '<div class="no-results">No videoke videos found</div>';
+                        sidebarResultsContainer.innerHTML = '<div class="no-results">No videoke/karaoke videos found</div>';
                     }
                 } else {
                     sidebarResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
@@ -1034,7 +1035,7 @@ async function searchVideos(query) {
                     }));
                     
                     const filteredVideos = filterVideokeVideos(videos);
-                    console.log('Search results after videoke filter:', filteredVideos.length, 'videos remain');
+                    console.log('Search results after videoke/karaoke filter:', filteredVideos.length, 'videos remain');
                     
                     if (filteredVideos.length > 0) {
                         // Track current list from filtered search results (by ID) for correct autoplay order
@@ -1051,8 +1052,8 @@ async function searchVideos(query) {
                     } else {
                         videoContainer.innerHTML = `
                             <div class="no-results">
-                                <h3>No Videoke Videos Found</h3>
-                                <p>No videos with "videoke" in the title were found for your search.</p>
+                                <h3>No Videoke/Karaoke Videos Found</h3>
+                                <p>No videos with "videoke" or "karaoke" in the title were found for your search.</p>
                                 <p>Try searching for "videoke" or "karaoke" to find karaoke videos!</p>
                             </div>
                         `;
@@ -1144,7 +1145,7 @@ async function searchVideosForQueue(query) {
                     }));
                     
                     const filteredVideos = filterVideokeVideos(videos);
-                    console.log('Queue search results after videoke filter:', filteredVideos.length, 'videos remain');
+                    console.log('Queue search results after videoke/karaoke filter:', filteredVideos.length, 'videos remain');
                     
                     if (filteredVideos.length > 0) {
                         // Convert back to search result format for appState.searchResults
@@ -1159,7 +1160,7 @@ async function searchVideosForQueue(query) {
                             searchResultsContainer.appendChild(searchResultCard);
                         });
                     } else {
-                        searchResultsContainer.innerHTML = '<div class="no-results">No videoke videos found</div>';
+                        searchResultsContainer.innerHTML = '<div class="no-results">No videoke/karaoke videos found</div>';
                     }
                 } else {
                     searchResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
@@ -1247,7 +1248,7 @@ async function searchVideosForOverlay(query) {
                     }));
                     
                     const filteredVideos = filterVideokeVideos(videos);
-                    console.log('Overlay search results after videoke filter:', filteredVideos.length, 'videos remain');
+                    console.log('Overlay search results after videoke/karaoke filter:', filteredVideos.length, 'videos remain');
                     
                     if (filteredVideos.length > 0) {
                         filteredVideos.forEach(video => {
@@ -1260,7 +1261,7 @@ async function searchVideosForOverlay(query) {
                             overlayResultsContainer.appendChild(overlaySearchCard);
                         });
                     } else {
-                        overlayResultsContainer.innerHTML = '<div class="no-results">No videoke videos found</div>';
+                        overlayResultsContainer.innerHTML = '<div class="no-results">No videoke/karaoke videos found</div>';
                     }
                 } else {
                     overlayResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
