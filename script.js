@@ -118,6 +118,9 @@ function hideSidebar() {
             hideSidebarBtn.title = 'Show Sidebar';
         }
         
+        // Update video player layout if it's visible
+        updateVideoPlayerLayout();
+        
         console.log('Sidebar hidden');
     }
 }
@@ -144,6 +147,9 @@ function showSidebar() {
             hideSidebarBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
             hideSidebarBtn.title = 'Hide Sidebar';
         }
+        
+        // Update video player layout if it's visible
+        updateVideoPlayerLayout();
         
         console.log('Sidebar shown');
     }
@@ -1957,6 +1963,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Handle window resize to update video player layout
+    window.addEventListener('resize', () => {
+        updateVideoPlayerLayout();
+    });
+
     // Handle mobile queue sidebar close button
     if (videoQueueSidebar) {
         const queueHeader = videoQueueSidebar.querySelector('.queue-sidebar-header');
@@ -2743,7 +2754,35 @@ function showVideoPlayer() {
     if (videoPlayerContainer) {
         videoPlayerContainer.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
+        updateVideoPlayerLayout();
     }
+}
+
+function updateVideoPlayerLayout() {
+    const videoPlayerContainer = document.getElementById('video-player-container');
+    const leftSidebar = document.querySelector('.sidebar');
+    const rightSidebar = document.querySelector('.video-queue-sidebar');
+    
+    if (!videoPlayerContainer) return;
+    
+    // Remove all sidebar-related classes first
+    videoPlayerContainer.classList.remove('sidebar-hidden', 'left-sidebar-hidden', 'both-sidebars-hidden');
+    
+    // Check sidebar visibility
+    const isLeftSidebarVisible = leftSidebar && !leftSidebar.classList.contains('collapsed') && 
+                                 window.innerWidth > 768 && !leftSidebar.classList.contains('hidden');
+    const isRightSidebarVisible = rightSidebar && !rightSidebar.classList.contains('hidden') && 
+                                  window.innerWidth > 768;
+    
+    // Apply appropriate class based on sidebar visibility
+    if (!isLeftSidebarVisible && !isRightSidebarVisible) {
+        videoPlayerContainer.classList.add('both-sidebars-hidden');
+    } else if (!isLeftSidebarVisible && isRightSidebarVisible) {
+        videoPlayerContainer.classList.add('left-sidebar-hidden');
+    } else if (isLeftSidebarVisible && !isRightSidebarVisible) {
+        videoPlayerContainer.classList.add('sidebar-hidden');
+    }
+    // If both are visible, no additional class is needed (default layout)
 }
 
 function playVideo(videoId) {
