@@ -42,10 +42,37 @@
     background-color: var(--light-orange);
 }
 
+/* Support tagline adjustments on small screens */
+@media (max-width: 480px) {
+    .support-tagline {
+        top: auto;
+        bottom: 10px;
+        right: 10px;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .support-tagline {
+        display: none;
+    }
+}
+
 @keyframes blink {
     0% { opacity: 1; }
     50% { opacity: 0.5; }
     100% { opacity: 1; }
+}
+
+/* Make media scale within containers */
+img, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+}
+
+iframe {
+    max-width: 100%;
 }
 
 * {
