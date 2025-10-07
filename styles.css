@@ -881,7 +881,7 @@ body {
     font-weight: 500;
     box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
     transition: all 0.3s ease;
-    z-index: 1000;
+    z-index: 1501;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1786,15 +1786,15 @@ body {
 /* Mobile video player adjustments */
 @media (max-width: 768px) {
     .video-player-container {
-        top: 0;
+        top: 60px; /* Start below navbar */
         left: 0;
         right: 0;
-        height: 100vh;
+        height: calc(100vh - 60px);
     }
     
     .player-wrapper {
         width: 100vw;
-        height: 100vh;
+        height: calc(100vh - 60px);
         max-width: none;
         max-height: none;
         border-radius: 0;
@@ -1804,7 +1804,7 @@ body {
 @media (max-width: 480px) {
     .player-wrapper {
         width: 100vw;
-        height: 100vh;
+        height: calc(100vh - 60px);
     }
 }
 
@@ -3396,16 +3396,16 @@ body {
     .video-player-container {
         padding: 0;
         position: fixed;
-        top: 0;
+        top: 60px; /* Start below navbar */
         left: 0;
         width: 100vw;
-        height: 100vh;
+        height: calc(100vh - 60px);
         overflow: hidden;
     }
     
     .player-wrapper {
         width: 100vw;
-        height: 100vh;
+        height: calc(100vh - 60px);
         max-width: none;
         max-height: none;
         padding-bottom: 80px; /* Space for controls */
@@ -3616,10 +3616,10 @@ body {
     /* Better mobile video player */
     .video-player-container {
         position: fixed;
-        top: 0;
+        top: 60px; /* Start below navbar */
         left: 0;
         width: 100vw;
-        height: 100vh;
+        height: calc(100vh - 60px);
         z-index: 1000;
         background: #000;
     }
@@ -4050,7 +4050,7 @@ body {
 /* Landscape mobile orientation */
 @media (max-width: 768px) and (orientation: landscape) {
     .video-player-container {
-        height: 100vh;
+        height: calc(100vh - 60px);
     }
     
     .player-controls {
