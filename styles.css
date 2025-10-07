@@ -307,6 +307,41 @@ body {
     .desktop-view-toggle {
         display: none !important;
     }
+    /* Ensure queue sidebar behaves like mobile on small tablets */
+    .video-queue-sidebar {
+        transform: translateX(100%);
+        width: 100%;
+        max-width: 400px;
+        z-index: 1500;
+        transition: transform 0.3s ease;
+        position: fixed;
+        top: 60px;
+        right: 0;
+        height: calc(100vh - 60px);
+        background: var(--background-color);
+        padding: 20px;
+        overflow-y: auto;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+    .video-queue-sidebar.active {
+        transform: translateX(0);
+    }
+    .sidebar-overlay {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 60px);
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 150;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
 }
 
 @media (max-width: 768px) {
