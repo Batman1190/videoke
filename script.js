@@ -1823,9 +1823,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Mobile menu toggle
     if (mobileMenuToggle && sidebar) {
-        mobileMenuToggle.addEventListener('click', (e) => {
+        // Add multiple event listeners to ensure it works
+        const handleMenuToggle = (e) => {
             try {
                 e.preventDefault();
+                e.stopPropagation();
                 sidebar.classList.toggle('active');
                 // Close queue sidebar if open
                 if (videoQueueSidebar) {
@@ -1835,14 +1837,19 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error toggling mobile menu:', error);
             }
-        });
+        };
+        
+        mobileMenuToggle.addEventListener('click', handleMenuToggle);
+        mobileMenuToggle.addEventListener('touchstart', handleMenuToggle);
+        mobileMenuToggle.addEventListener('touchend', handleMenuToggle);
     } else {
         console.warn('Mobile menu toggle or sidebar not found');
     }
 
     // Mobile queue toggle
     if (mobileQueueToggle && videoQueueSidebar) {
-        mobileQueueToggle.addEventListener('click', (e) => {
+        // Add multiple event listeners to ensure it works
+        const handleQueueToggle = (e) => {
             try {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1874,7 +1881,11 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error toggling mobile queue:', error);
             }
-        });
+        };
+        
+        mobileQueueToggle.addEventListener('click', handleQueueToggle);
+        mobileQueueToggle.addEventListener('touchstart', handleQueueToggle);
+        mobileQueueToggle.addEventListener('touchend', handleQueueToggle);
     } else {
         console.warn('Mobile queue toggle or video queue sidebar not found');
     }
@@ -2776,15 +2787,17 @@ function showVideoPlayer() {
         const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
         
         if (mobileMenuToggle) {
-            mobileMenuToggle.style.zIndex = '2000';
+            mobileMenuToggle.style.zIndex = '3000';
             mobileMenuToggle.style.position = 'relative';
             mobileMenuToggle.style.pointerEvents = 'auto';
+            mobileMenuToggle.style.touchAction = 'manipulation';
         }
         
         if (mobileQueueToggle) {
-            mobileQueueToggle.style.zIndex = '2000';
+            mobileQueueToggle.style.zIndex = '3000';
             mobileQueueToggle.style.position = 'relative';
             mobileQueueToggle.style.pointerEvents = 'auto';
+            mobileQueueToggle.style.touchAction = 'manipulation';
         }
         
         // Hide mobile queue sidebar when video starts playing
@@ -2818,15 +2831,17 @@ function updateVideoPlayerLayout() {
         const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
         
         if (mobileMenuToggle) {
-            mobileMenuToggle.style.zIndex = '2000';
+            mobileMenuToggle.style.zIndex = '3000';
             mobileMenuToggle.style.position = 'relative';
             mobileMenuToggle.style.pointerEvents = 'auto';
+            mobileMenuToggle.style.touchAction = 'manipulation';
         }
         
         if (mobileQueueToggle) {
-            mobileQueueToggle.style.zIndex = '2000';
+            mobileQueueToggle.style.zIndex = '3000';
             mobileQueueToggle.style.position = 'relative';
             mobileQueueToggle.style.pointerEvents = 'auto';
+            mobileQueueToggle.style.touchAction = 'manipulation';
         }
     }
     

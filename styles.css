@@ -1755,9 +1755,21 @@ body {
 /* Ensure mobile toggle buttons work even when video player is active */
 body:has(.video-player-container:not(.hidden)) .mobile-menu-toggle,
 body:has(.video-player-container:not(.hidden)) .mobile-queue-toggle {
-    z-index: 2000 !important;
+    z-index: 3000 !important;
     position: relative !important;
     pointer-events: auto !important;
+    touch-action: manipulation !important;
+}
+
+/* Force mobile toggle buttons to be clickable when video player is active */
+.video-player-container:not(.hidden) ~ * .mobile-menu-toggle,
+.video-player-container:not(.hidden) ~ * .mobile-queue-toggle,
+.navbar .mobile-menu-toggle,
+.navbar .mobile-queue-toggle {
+    z-index: 3000 !important;
+    position: relative !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
 }
 
 .video-player-container.hidden {
@@ -1798,6 +1810,14 @@ body:has(.video-player-container:not(.hidden)) .mobile-queue-toggle {
         left: 0;
         right: 0;
         height: calc(100vh - 60px);
+        pointer-events: none; /* Allow clicks to pass through to navbar */
+    }
+    
+    /* Re-enable pointer events for video player content */
+    .video-player-container .player-wrapper,
+    .video-player-container #player,
+    .video-player-container iframe {
+        pointer-events: auto;
     }
     
     .player-wrapper {
@@ -3423,6 +3443,15 @@ body:has(.video-player-container:not(.hidden)) .mobile-queue-toggle {
         z-index: 2000 !important;
         position: relative !important;
         pointer-events: auto !important;
+    }
+    
+    /* Force mobile toggle buttons to be clickable even when video player is active */
+    .navbar .mobile-menu-toggle,
+    .navbar .mobile-queue-toggle {
+        z-index: 3000 !important;
+        position: relative !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
     }
     
     .player-wrapper {
