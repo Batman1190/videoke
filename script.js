@@ -426,8 +426,15 @@ async function fetchTrendingVideos(region = 'US') {
                 console.log('API response received:', data);
                 if (data.items && data.items.length > 0) {
                     // Filter trending to karaoke/videoke only
-                    const filteredItems = data.items.filter(itemMatchesKaraokeOrVideoke);
+                    let filteredItems = data.items.filter(itemMatchesKaraokeOrVideoke);
                     console.log('Found', data.items.length, 'videos, filtered to', filteredItems.length);
+
+                    // Fallback: if nothing matches the filter, show unfiltered trending
+                    if (!filteredItems || filteredItems.length === 0) {
+                        console.log('No karaoke/videoke matches in trending; falling back to unfiltered trending list');
+                        filteredItems = data.items;
+                    }
+
                     // Track list with trending results only when we are actually showing trending
                     appState.currentList = filteredItems.map(v => v.id?.videoId || v.id).filter(Boolean);
                     appState.currentIndex = -1;
