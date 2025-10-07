@@ -1759,6 +1759,10 @@ body {
     position: relative !important;
     pointer-events: auto !important;
     touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
 }
 
 .video-player-container.hidden {
@@ -2848,7 +2852,8 @@ body {
 
 .mobile-menu-toggle:active {
     background: rgba(255, 255, 255, 0.3);
-    transform: scale(0.95);
+    opacity: 0.8;
+    transition: opacity 0.1s ease;
 }
 
 .mobile-queue-toggle {
@@ -2883,7 +2888,8 @@ body {
 
 .mobile-queue-toggle:active {
     background: rgba(255, 255, 255, 0.3);
-    transform: scale(0.95);
+    opacity: 0.8;
+    transition: opacity 0.1s ease;
 }
 
 .queue-badge {
@@ -3340,7 +3346,7 @@ body {
     }
     
     .video-card:active {
-        transform: scale(0.98);
+        /* Removed scale transform to prevent bouncing */
     }
     
     .control-button:hover {
@@ -3348,7 +3354,7 @@ body {
     }
     
     .control-button:active {
-        transform: scale(0.95);
+        /* Removed scale transform to prevent bouncing */
     }
     
     .sidebar-search-result-card:hover {
@@ -3356,7 +3362,7 @@ body {
     }
     
     .sidebar-search-result-card:active {
-        transform: scale(0.98);
+        /* Removed scale transform to prevent bouncing */
     }
     
     .sidebar-queue-item:hover {
@@ -3681,7 +3687,8 @@ body {
     .mobile-menu-toggle:active,
     .mobile-queue-toggle:active {
         background: rgba(255, 255, 255, 0.2);
-        transform: scale(0.95);
+        opacity: 0.8;
+        transition: opacity 0.1s ease;
     }
     
     /* Better mobile video player */
@@ -3919,7 +3926,7 @@ body {
     
     .sidebar-image-link:active {
         background: rgba(255, 255, 255, 0.1);
-        transform: scale(0.98);
+        /* Removed scale transform to prevent bouncing */
     }
     
     /* Mobile search results */
@@ -3941,8 +3948,8 @@ body {
     }
     
     .sidebar-search-result-card:active {
-        transform: scale(0.98);
-        transition: transform 0.1s ease;
+        /* Removed scale transform to prevent bouncing */
+        transition: background-color 0.1s ease;
     }
     
     .sidebar-search-result-thumbnail {
