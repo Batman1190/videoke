@@ -1805,7 +1805,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Mobile menu functionality
+    // Mobile menu functionality - DISABLED TO PREVENT CONFLICTS WITH sidebar.js
+    // The sidebar.js file handles all mobile toggle functionality
+    /*
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
     const mobileQueueBadge = document.getElementById('mobile-queue-badge');
@@ -1889,6 +1891,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.warn('Mobile queue toggle or video queue sidebar not found');
     }
+    */
 
     // Clear all queue button
     const clearAllQueueBtn = document.getElementById('clear-all-queue-btn');
@@ -1959,7 +1962,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('Show sidebar button not found');
     }
 
-    // Close sidebars when clicking outside
+    // Close sidebars when clicking outside - DISABLED TO PREVENT INTERFERENCE
+    // This was causing sidebars to close automatically
+    /*
     document.addEventListener('click', (e) => {
         try {
             if (sidebar && mobileMenuToggle && !sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
@@ -1973,6 +1978,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error handling click outside:', error);
         }
     });
+    */
     
     // Handle window resize to update video player layout
     window.addEventListener('resize', () => {
@@ -3349,6 +3355,12 @@ function removeNavbarOverlay() {
 }
 
 function forceMobileToggleButtons() {
+    // DISABLED TO PREVENT CONFLICTS WITH sidebar.js
+    // The sidebar.js file handles all mobile toggle functionality
+    console.log('forceMobileToggleButtons disabled to prevent conflicts');
+    return;
+    
+    /*
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
     
@@ -3416,4 +3428,5 @@ function forceMobileToggleButtons() {
             };
         }
     }
+    */
 }
