@@ -2235,7 +2235,11 @@ body {
     }
 
     .nav-middle {
-        display: none; /* Hide search on mobile, use sidebar instead */
+        display: flex !important; /* Show main search on mobile */
+        justify-content: center;
+        flex: 1 1 auto;
+        min-width: 0;
+        gap: 8px;
     }
 
     .nav-right {
@@ -3074,7 +3078,11 @@ body {
     }
 
     .nav-middle {
-        display: none; /* Hide search on mobile, use sidebar */
+        display: flex !important; /* Show main search on mobile */
+        justify-content: center;
+        flex: 1 1 auto;
+        min-width: 0;
+        gap: 8px;
     }
 
     .site-title {
