@@ -743,7 +743,11 @@ async function searchVideosForSidebar(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Sidebar search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
+                // Ensure sidebar searches include karaoke/videoke terms by default
+                const normalized = (query || '').trim();
+                const hasKaraoke = /(karaoke|videoke)/i.test(normalized);
+                const enforcedQuery = hasKaraoke ? normalized : `${normalized} karaoke videoke`;
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(enforcedQuery)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
