@@ -1752,21 +1752,10 @@ body {
     backdrop-filter: blur(10px);
 }
 
-/* Ensure mobile toggle buttons work even when video player is active */
-body:has(.video-player-container:not(.hidden)) .mobile-menu-toggle,
-body:has(.video-player-container:not(.hidden)) .mobile-queue-toggle {
-    z-index: 3000 !important;
-    position: relative !important;
-    pointer-events: auto !important;
-    touch-action: manipulation !important;
-}
-
-/* Force mobile toggle buttons to be clickable when video player is active */
-.video-player-container:not(.hidden) ~ * .mobile-menu-toggle,
-.video-player-container:not(.hidden) ~ * .mobile-queue-toggle,
+/* Mobile toggle buttons - consolidated rules */
 .navbar .mobile-menu-toggle,
 .navbar .mobile-queue-toggle {
-    z-index: 3000 !important;
+    z-index: 9999 !important;
     position: relative !important;
     pointer-events: auto !important;
     touch-action: manipulation !important;
@@ -1818,6 +1807,31 @@ body:has(.video-player-container:not(.hidden)) .mobile-queue-toggle {
     .video-player-container #player,
     .video-player-container iframe {
         pointer-events: auto;
+    }
+    
+    /* Create a transparent overlay that allows navbar touch events */
+    .video-player-container::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px; /* Only cover navbar area */
+        background: transparent;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    /* Ensure navbar and its children are always clickable */
+    .navbar {
+        z-index: 3000 !important;
+        position: relative !important;
+        pointer-events: auto !important;
+    }
+    
+    .navbar * {
+        pointer-events: auto !important;
+        z-index: 3000 !important;
     }
     
     .player-wrapper {
@@ -3435,23 +3449,26 @@ body:has(.video-player-container:not(.hidden)) .mobile-queue-toggle {
         overflow: hidden;
     }
     
-    /* Ensure mobile toggle buttons are always accessible when video player is active */
-    .video-player-container:not(.hidden) + * .mobile-menu-toggle,
-    .video-player-container:not(.hidden) + * .mobile-queue-toggle,
+    /* Consolidated mobile toggle button rules - single source of truth */
     .navbar .mobile-menu-toggle,
     .navbar .mobile-queue-toggle {
-        z-index: 2000 !important;
-        position: relative !important;
-        pointer-events: auto !important;
-    }
-    
-    /* Force mobile toggle buttons to be clickable even when video player is active */
-    .navbar .mobile-menu-toggle,
-    .navbar .mobile-queue-toggle {
-        z-index: 3000 !important;
+        z-index: 9999 !important;
         position: relative !important;
         pointer-events: auto !important;
         touch-action: manipulation !important;
+    }
+    
+    /* When video player is active, make buttons even more prominent */
+    .video-player-container:not(.hidden) .navbar .mobile-menu-toggle,
+    .video-player-container:not(.hidden) .navbar .mobile-queue-toggle,
+    body:has(.video-player-container:not(.hidden)) .navbar .mobile-menu-toggle,
+    body:has(.video-player-container:not(.hidden)) .navbar .mobile-queue-toggle {
+        z-index: 9999 !important;
+        position: relative !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
     }
     
     .player-wrapper {

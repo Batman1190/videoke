@@ -2754,6 +2754,9 @@ function closeVideoPlayer() {
         document.body.style.overflow = 'auto';
         updateVideoPlayerLayout();
         
+        // Remove navbar overlay when video player is closed
+        removeNavbarOverlay();
+        
         // Reset mobile sidebar behavior when video player is closed
         if (window.innerWidth <= 768) {
             // Ensure any mobile sidebar overlays are cleaned up
@@ -2781,6 +2784,13 @@ function showVideoPlayer() {
         videoPlayerContainer.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         updateVideoPlayerLayout();
+        
+        // Create a transparent overlay for navbar area on mobile
+        if (window.innerWidth <= 768) {
+            createNavbarOverlay();
+            // Force mobile toggle buttons to work
+            forceMobileToggleButtons();
+        }
         
         // Ensure mobile toggle buttons are accessible when video player is active
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
@@ -3306,3 +3316,104 @@ window.testDisplayVideos = function() {
     console.log('Testing displayVideos with test data...');
     displayVideos(testVideos);
 };
+
+// Navbar overlay functions for mobile video player
+function createNavbarOverlay() {
+    // Remove existing overlay if any
+    removeNavbarOverlay();
+    
+    // Create a transparent overlay that allows navbar touch events
+    const overlay = document.createElement('div');
+    overlay.id = 'navbar-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background: transparent;
+        pointer-events: none;
+        z-index: 1;
+    `;
+    
+    document.body.appendChild(overlay);
+    console.log('Navbar overlay created');
+}
+
+function removeNavbarOverlay() {
+    const overlay = document.getElementById('navbar-overlay');
+    if (overlay) {
+        overlay.remove();
+        console.log('Navbar overlay removed');
+    }
+}
+
+function forceMobileToggleButtons() {
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
+    
+    if (mobileMenuToggle) {
+        // Force the button to be clickable
+        mobileMenuToggle.style.cssText = `
+            z-index: 9999 !important;
+            position: fixed !important;
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        `;
+        
+        // Remove existing event listeners to avoid conflicts
+        mobileMenuToggle.replaceWith(mobileMenuToggle.cloneNode(true));
+        const newMobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        
+        // Add a direct click handler that bypasses any blocking
+        if (newMobileMenuToggle) {
+            newMobileMenuToggle.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar) {
+                    sidebar.classList.toggle('active');
+                    console.log('Mobile menu toggled via force function');
+                }
+            };
+        }
+    }
+    
+    if (mobileQueueToggle) {
+        // Force the button to be clickable
+        mobileQueueToggle.style.cssText = `
+            z-index: 9999 !important;
+            position: fixed !important;
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        `;
+        
+        // Remove existing event listeners to avoid conflicts
+        mobileQueueToggle.replaceWith(mobileQueueToggle.cloneNode(true));
+        const newMobileQueueToggle = document.getElementById('mobile-queue-toggle');
+        
+        // Add a direct click handler that bypasses any blocking
+        if (newMobileQueueToggle) {
+            newMobileQueueToggle.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const videoQueueSidebar = document.querySelector('.video-queue-sidebar');
+                if (videoQueueSidebar) {
+                    const isActive = videoQueueSidebar.classList.contains('active');
+                    if (isActive) {
+                        videoQueueSidebar.classList.remove('active');
+                        document.body.style.overflow = 'auto';
+                    } else {
+                        videoQueueSidebar.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                    console.log('Mobile queue toggled via force function');
+                }
+            };
+        }
+    }
+}
