@@ -2741,6 +2741,21 @@ function closeVideoPlayer() {
     if (videoPlayerContainer) {
         videoPlayerContainer.classList.add('hidden');
         document.body.style.overflow = 'auto';
+        updateVideoPlayerLayout();
+        
+        // Reset mobile sidebar behavior when video player is closed
+        if (window.innerWidth <= 768) {
+            // Ensure any mobile sidebar overlays are cleaned up
+            const overlay = document.querySelector('.sidebar-overlay');
+            if (overlay && overlay.parentNode) {
+                overlay.classList.remove('active');
+                setTimeout(() => {
+                    if (overlay.parentNode) {
+                        document.body.removeChild(overlay);
+                    }
+                }, 300);
+            }
+        }
     }
     // Reset player state
     isPlaying = false;
@@ -2755,6 +2770,24 @@ function showVideoPlayer() {
         videoPlayerContainer.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         updateVideoPlayerLayout();
+        
+        // Hide mobile queue sidebar when video starts playing
+        if (window.innerWidth <= 768) {
+            const videoQueueSidebar = document.querySelector('.video-queue-sidebar');
+            if (videoQueueSidebar && videoQueueSidebar.classList.contains('active')) {
+                videoQueueSidebar.classList.remove('active');
+                // Also remove any overlay
+                const overlay = document.querySelector('.sidebar-overlay');
+                if (overlay) {
+                    overlay.classList.remove('active');
+                    setTimeout(() => {
+                        if (overlay.parentNode) {
+                            document.body.removeChild(overlay);
+                        }
+                    }, 300);
+                }
+            }
+        }
     }
 }
 

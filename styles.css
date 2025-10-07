@@ -114,7 +114,7 @@ body {
     align-items: center;
     padding: 10px 2%;
     justify-content: space-between;
-    z-index: 1000;
+    z-index: 1500;
 }
 
 .nav-left {
@@ -3622,6 +3622,13 @@ body {
         height: 100vh;
         z-index: 1000;
         background: #000;
+    }
+    
+    /* Ensure mobile queue toggle is always visible during video playback */
+    .navbar .mobile-queue-toggle {
+        display: flex !important;
+        z-index: 1501 !important;
+        position: relative;
     }
     
     .video-player-container iframe {
