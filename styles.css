@@ -304,6 +304,15 @@ body {
     .mobile-search-toggle {
         display: flex !important;
     }
+    .desktop-view-toggle {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .desktop-view-toggle {
+        display: none !important;
+    }
 }
 
 /* Desktop View Toggle Button */
