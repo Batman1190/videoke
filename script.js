@@ -32,6 +32,22 @@ const appState = {
     forceDesktopView: JSON.parse(localStorage.getItem('forceDesktopView') || 'false')
 };
 
+// Ensure desktop view is disabled by default and clear any saved state
+try {
+    if (appState.forceDesktopView) {
+        localStorage.removeItem('forceDesktopView');
+        appState.forceDesktopView = false;
+    }
+    // Remove any leftover class and restore mobile viewport immediately
+    document.body.classList.remove('force-desktop-view');
+    (function restoreViewportMeta() {
+        const viewportMeta = document.querySelector('meta[name="viewport"]');
+        if (viewportMeta) {
+            viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover');
+        }
+    })();
+} catch (_) {}
+
 // Helper function to enhance search queries with videoke/karaoke keywords
 function enhanceSearchQuery(query) {
     if (!query || typeof query !== 'string') {
