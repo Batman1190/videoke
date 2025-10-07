@@ -288,6 +288,19 @@ function toggleDesktopView() {
     
     const body = document.body;
     const toggleButton = document.getElementById('desktop-view-toggle');
+    if (!toggleButton) {
+        // If button is absent (removed from UI), just toggle body class and viewport
+        appState.forceDesktopView = !appState.forceDesktopView;
+        localStorage.setItem('forceDesktopView', appState.forceDesktopView);
+        if (appState.forceDesktopView) {
+            body.classList.add('force-desktop-view');
+            updateViewportMeta(true);
+        } else {
+            body.classList.remove('force-desktop-view');
+            updateViewportMeta(false);
+        }
+        return;
+    }
     
     if (appState.forceDesktopView) {
         body.classList.add('force-desktop-view');
@@ -325,7 +338,17 @@ function updateViewportMeta(isDesktopView) {
 
 function initializeDesktopView() {
     const toggleButton = document.getElementById('desktop-view-toggle');
-    
+    if (!toggleButton) {
+        // Respect persisted state even if button is removed
+        if (appState.forceDesktopView) {
+            document.body.classList.add('force-desktop-view');
+            updateViewportMeta(true);
+        } else {
+            updateViewportMeta(false);
+        }
+        return;
+    }
+
     if (appState.forceDesktopView) {
         document.body.classList.add('force-desktop-view');
         toggleButton.classList.add('active');
