@@ -365,6 +365,22 @@ function formatTimeAgo(dateString) {
     return 'Just now';
 }
 
+// Filter helpers: allow only videos clearly related to karaoke/videoke
+function isKaraokeOrVideokeText(text) {
+	if (!text || typeof text !== 'string') return false;
+	return /(karaoke|videoke)/i.test(text);
+}
+
+function itemMatchesKaraokeOrVideoke(item) {
+	try {
+		const title = item?.snippet?.title || '';
+		const description = item?.snippet?.description || '';
+		return isKaraokeOrVideokeText(title) || isKaraokeOrVideokeText(description);
+	} catch (_) {
+		return false;
+	}
+}
+
 // YouTube API Functions
 async function fetchTrendingVideos(region = 'US') {
     console.log('fetchTrendingVideos called with region:', region);
@@ -409,11 +425,13 @@ async function fetchTrendingVideos(region = 'US') {
                 const data = await response.json();
                 console.log('API response received:', data);
                 if (data.items && data.items.length > 0) {
-                    console.log('Found', data.items.length, 'videos');
+                    // Filter trending to karaoke/videoke only
+                    const filteredItems = data.items.filter(itemMatchesKaraokeOrVideoke);
+                    console.log('Found', data.items.length, 'videos, filtered to', filteredItems.length);
                     // Track list with trending results only when we are actually showing trending
-                    appState.currentList = data.items.map(v => v.id?.videoId || v.id).filter(Boolean);
+                    appState.currentList = filteredItems.map(v => v.id?.videoId || v.id).filter(Boolean);
                     appState.currentIndex = -1;
-                    displayVideos(data.items);
+                    displayVideos(filteredItems);
                     return; // Success, exit the function
                 } else {
                     console.log('No videos found in API response');
@@ -952,7 +970,11 @@ async function searchVideos(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
+                // Ensure query targets karaoke/videoke if user didn't include it
+                const normalized = (query || '').trim();
+                const hasKaraoke = /(karaoke|videoke)/i.test(normalized);
+                const enforcedQuery = hasKaraoke ? normalized : `${normalized} karaoke`;
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${encodeURIComponent(enforcedQuery)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -977,12 +999,13 @@ async function searchVideos(query) {
                 
                 // Process and display search results
                 if (data.items && data.items.length > 0) {
+                    const filtered = data.items.filter(itemMatchesKaraokeOrVideoke);
                     // Track current list from search results (by ID) for correct autoplay order
-                    appState.currentList = data.items
+                    appState.currentList = filtered
                         .map(item => item && item.id && item.id.videoId)
                         .filter(Boolean);
                     appState.currentIndex = -1;
-                    data.items.forEach(item => {
+                    filtered.forEach(item => {
                         // Convert search result format to video format
                         const video = {
                             id: item.id.videoId,
@@ -1051,7 +1074,10 @@ async function searchVideosForQueue(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Queue search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
+                const normalized = (query || '').trim();
+                const hasKaraoke = /(karaoke|videoke)/i.test(normalized);
+                const enforcedQuery = hasKaraoke ? normalized : `${normalized} karaoke`;
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(enforcedQuery)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -1072,8 +1098,9 @@ async function searchVideosForQueue(query) {
                 
                 // Process and display search results for queue
                 if (data.items && data.items.length > 0) {
-                    appState.searchResults = data.items;
-                    data.items.forEach(item => {
+                    const filtered = data.items.filter(itemMatchesKaraokeOrVideoke);
+                    appState.searchResults = filtered;
+                    filtered.forEach(item => {
                         const searchResultCard = createSearchResultCard(item);
                         searchResultsContainer.appendChild(searchResultCard);
                     });
@@ -1135,7 +1162,10 @@ async function searchVideosForOverlay(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Overlay search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
+                const normalized = (query || '').trim();
+                const hasKaraoke = /(karaoke|videoke)/i.test(normalized);
+                const enforcedQuery = hasKaraoke ? normalized : `${normalized} karaoke`;
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(enforcedQuery)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -1156,7 +1186,8 @@ async function searchVideosForOverlay(query) {
                 
                 // Process and display search results for overlay
                 if (data.items && data.items.length > 0) {
-                    data.items.forEach(item => {
+                    const filtered = data.items.filter(itemMatchesKaraokeOrVideoke);
+                    filtered.forEach(item => {
                         const overlaySearchCard = createOverlaySearchCard(item);
                         overlayResultsContainer.appendChild(overlaySearchCard);
                     });
@@ -1578,15 +1609,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Mobile menu functionality
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+	const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+	const mobileSearchToggle = document.getElementById('mobile-search-toggle');
     const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
     const mobileQueueBadge = document.getElementById('mobile-queue-badge');
     const sidebar = document.querySelector('.sidebar');
     const videoQueueSidebar = document.querySelector('.video-queue-sidebar');
     
     // Debug mobile elements
-    console.log('Mobile elements found:', {
+	console.log('Mobile elements found:', {
         menuToggle: !!mobileMenuToggle,
+		searchToggle: !!mobileSearchToggle,
         queueToggle: !!mobileQueueToggle,
         queueBadge: !!mobileQueueBadge,
         sidebar: !!sidebar,
@@ -1650,6 +1683,23 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.warn('Mobile queue toggle or video queue sidebar not found');
     }
+
+	// Mobile search toggle -> open search overlay
+	if (mobileSearchToggle) {
+		mobileSearchToggle.addEventListener('click', (e) => {
+			try {
+				e.preventDefault();
+				e.stopPropagation();
+				const mainQuery = (searchInput && typeof searchInput.value === 'string') ? searchInput.value.trim() : '';
+				showSearchOverlay(mainQuery);
+				console.log('Mobile search toggled (overlay opened)');
+			} catch (error) {
+				console.error('Error toggling mobile search:', error);
+			}
+		});
+	} else {
+		console.warn('Mobile search toggle not found');
+	}
 
     // Clear all queue button
     const clearAllQueueBtn = document.getElementById('clear-all-queue-btn');
