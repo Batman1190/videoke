@@ -2771,6 +2771,22 @@ function showVideoPlayer() {
         document.body.style.overflow = 'hidden';
         updateVideoPlayerLayout();
         
+        // Ensure mobile toggle buttons are accessible when video player is active
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.style.zIndex = '2000';
+            mobileMenuToggle.style.position = 'relative';
+            mobileMenuToggle.style.pointerEvents = 'auto';
+        }
+        
+        if (mobileQueueToggle) {
+            mobileQueueToggle.style.zIndex = '2000';
+            mobileQueueToggle.style.position = 'relative';
+            mobileQueueToggle.style.pointerEvents = 'auto';
+        }
+        
         // Hide mobile queue sidebar when video starts playing
         if (window.innerWidth <= 768) {
             const videoQueueSidebar = document.querySelector('.video-queue-sidebar');
@@ -2795,6 +2811,24 @@ function updateVideoPlayerLayout() {
     const videoPlayerContainer = document.getElementById('video-player-container');
     const leftSidebar = document.querySelector('.sidebar');
     const rightSidebar = document.querySelector('.video-queue-sidebar');
+    
+    // Ensure mobile toggle buttons are accessible when video player is active
+    if (videoPlayerContainer && !videoPlayerContainer.classList.contains('hidden')) {
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.style.zIndex = '2000';
+            mobileMenuToggle.style.position = 'relative';
+            mobileMenuToggle.style.pointerEvents = 'auto';
+        }
+        
+        if (mobileQueueToggle) {
+            mobileQueueToggle.style.zIndex = '2000';
+            mobileQueueToggle.style.position = 'relative';
+            mobileQueueToggle.style.pointerEvents = 'auto';
+        }
+    }
     
     if (!videoPlayerContainer) return;
     

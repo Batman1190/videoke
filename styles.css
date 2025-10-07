@@ -114,7 +114,7 @@ body {
     align-items: center;
     padding: 10px 2%;
     justify-content: space-between;
-    z-index: 1500;
+    z-index: 2000;
 }
 
 .nav-left {
@@ -1752,6 +1752,14 @@ body {
     backdrop-filter: blur(10px);
 }
 
+/* Ensure mobile toggle buttons work even when video player is active */
+body:has(.video-player-container:not(.hidden)) .mobile-menu-toggle,
+body:has(.video-player-container:not(.hidden)) .mobile-queue-toggle {
+    z-index: 2000 !important;
+    position: relative !important;
+    pointer-events: auto !important;
+}
+
 .video-player-container.hidden {
     display: none;
 }
@@ -2788,6 +2796,9 @@ body {
     min-height: 44px;
     align-items: center;
     justify-content: center;
+    z-index: 2000;
+    position: relative;
+    pointer-events: auto;
 }
 
 /* Show mobile menu toggle on mobile devices */
@@ -2815,13 +2826,14 @@ body {
     cursor: pointer;
     padding: 12px;
     position: relative;
-    z-index: 1501;
+    z-index: 2000;
     border-radius: 8px;
     transition: all 0.2s ease;
     min-width: 44px;
     min-height: 44px;
     align-items: center;
     justify-content: center;
+    pointer-events: auto;
 }
 
 /* Show mobile queue toggle on mobile devices */
@@ -3403,6 +3415,16 @@ body {
         overflow: hidden;
     }
     
+    /* Ensure mobile toggle buttons are always accessible when video player is active */
+    .video-player-container:not(.hidden) + * .mobile-menu-toggle,
+    .video-player-container:not(.hidden) + * .mobile-queue-toggle,
+    .navbar .mobile-menu-toggle,
+    .navbar .mobile-queue-toggle {
+        z-index: 2000 !important;
+        position: relative !important;
+        pointer-events: auto !important;
+    }
+    
     .player-wrapper {
         width: 100vw;
         height: calc(100vh - 60px);
@@ -3605,6 +3627,9 @@ body {
         justify-content: center;
         border-radius: 8px;
         transition: all 0.2s ease;
+        z-index: 2000;
+        position: relative;
+        pointer-events: auto;
     }
     
     .mobile-menu-toggle:active,
@@ -3627,8 +3652,9 @@ body {
     /* Ensure mobile queue toggle is always visible during video playback */
     .navbar .mobile-queue-toggle {
         display: flex !important;
-        z-index: 1501 !important;
+        z-index: 2000 !important;
         position: relative;
+        pointer-events: auto;
     }
     
     .video-player-container iframe {
