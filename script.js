@@ -372,13 +372,13 @@ function isKaraokeOrVideokeText(text) {
 }
 
 function itemMatchesKaraokeOrVideoke(item) {
-	try {
-		const title = item?.snippet?.title || '';
-		const description = item?.snippet?.description || '';
-		return isKaraokeOrVideokeText(title) || isKaraokeOrVideokeText(description);
-	} catch (_) {
-		return false;
-	}
+    try {
+        const title = item?.snippet?.title || '';
+        // Strict: title must contain karaoke/videoke
+        return isKaraokeOrVideokeText(title);
+    } catch (_) {
+        return false;
+    }
 }
 
 // YouTube API Functions
@@ -429,10 +429,9 @@ async function fetchTrendingVideos(region = 'US') {
                     let filteredItems = data.items.filter(itemMatchesKaraokeOrVideoke);
                     console.log('Found', data.items.length, 'videos, filtered to', filteredItems.length);
 
-                    // Fallback: if nothing matches the filter, show unfiltered trending
+                    // Strict mode: if no matches, show an empty state
                     if (!filteredItems || filteredItems.length === 0) {
-                        console.log('No karaoke/videoke matches in trending; falling back to unfiltered trending list');
-                        filteredItems = data.items;
+                        console.log('No karaoke/videoke matches in trending; showing empty state');
                     }
 
                     // Track list with trending results only when we are actually showing trending
@@ -703,12 +702,17 @@ async function searchVideosForSidebar(query) {
                 // Clear loading state
                 sidebarResultsContainer.innerHTML = '';
                 
-                // Process and display search results for sidebar
+                // Process and display search results for sidebar (strict title filter)
                 if (data.items && data.items.length > 0) {
-                    data.items.forEach(item => {
-                        const sidebarSearchCard = createSidebarSearchCard(item);
-                        sidebarResultsContainer.appendChild(sidebarSearchCard);
-                    });
+                    const filtered = data.items.filter(itemMatchesKaraokeOrVideoke);
+                    if (filtered.length === 0) {
+                        sidebarResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
+                    } else {
+                        filtered.forEach(item => {
+                            const sidebarSearchCard = createSidebarSearchCard(item);
+                            sidebarResultsContainer.appendChild(sidebarSearchCard);
+                        });
+                    }
                 } else {
                     sidebarResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
                 }
