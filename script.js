@@ -6,9 +6,8 @@ const videoContainer = document.getElementById('video-container');
 const videoPlayerContainer = document.getElementById('video-player-container');
 const closePlayerBtn = document.getElementById('close-player');
 const searchInput = document.querySelector('.search-box input');
-const searchButton = document.querySelector('.search-box .search-btn');
+const searchButton = document.querySelector('.search-box button:last-child');
 const loadingSpinner = document.getElementById('loading');
-const mobileSearchToggle = document.getElementById('mobile-search-toggle');
 
 // App State
 const appState = {
@@ -27,70 +26,8 @@ const appState = {
     // Search results for video reservation
     searchResults: [],
     // Sidebar visibility state
-    sidebarHidden: JSON.parse(localStorage.getItem('sidebarHidden') || 'false'),
-    // Desktop view mode state
-    forceDesktopView: JSON.parse(localStorage.getItem('forceDesktopView') || 'false')
+    sidebarHidden: JSON.parse(localStorage.getItem('sidebarHidden') || 'false')
 };
-
-// Ensure desktop view is disabled by default and clear any saved state
-try {
-    if (appState.forceDesktopView) {
-        localStorage.removeItem('forceDesktopView');
-        appState.forceDesktopView = false;
-    }
-    // Remove any leftover class and restore mobile viewport immediately
-    document.body.classList.remove('force-desktop-view');
-    (function restoreViewportMeta() {
-        const viewportMeta = document.querySelector('meta[name="viewport"]');
-        if (viewportMeta) {
-            viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover');
-        }
-    })();
-} catch (_) {}
-
-// Helper function to enhance search queries with videoke/karaoke keywords
-function enhanceSearchQuery(query) {
-    if (!query || typeof query !== 'string') {
-        return 'videoke karaoke';
-    }
-    
-    const trimmedQuery = query.trim();
-    const lowerQuery = trimmedQuery.toLowerCase();
-    
-    // Check if query already contains videoke or karaoke
-    const hasVideoke = lowerQuery.includes('videoke');
-    const hasKaraoke = lowerQuery.includes('karaoke');
-    
-    // If neither videoke nor karaoke is present, add both
-    if (!hasVideoke && !hasKaraoke) {
-        return `${trimmedQuery} videoke karaoke`;
-    }
-    // If only videoke is present, add karaoke
-    else if (hasVideoke && !hasKaraoke) {
-        return `${trimmedQuery} karaoke`;
-    }
-    // If only karaoke is present, add videoke
-    else if (!hasVideoke && hasKaraoke) {
-        return `${trimmedQuery} videoke`;
-    }
-    // Both are already present, return original query
-    else {
-        return trimmedQuery;
-    }
-}
-
-// Filter function to only show videos with "videoke" or "karaoke" in the title
-function filterVideokeVideos(videos) {
-    if (!videos || !Array.isArray(videos)) {
-        return [];
-    }
-    
-    return videos.filter(video => {
-        const title = video.snippet?.title || '';
-        const lowerTitle = title.toLowerCase();
-        return lowerTitle.includes('videoke') || lowerTitle.includes('karaoke');
-    });
-}
 
 // Load watch history from storage
 function loadWatchHistory() {
@@ -135,9 +72,6 @@ function hideSidebar() {
             hideSidebarBtn.title = 'Show Sidebar';
         }
         
-        // Update video player layout if it's visible
-        updateVideoPlayerLayout();
-        
         console.log('Sidebar hidden');
     }
 }
@@ -164,9 +98,6 @@ function showSidebar() {
             hideSidebarBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
             hideSidebarBtn.title = 'Hide Sidebar';
         }
-        
-        // Update video player layout if it's visible
-        updateVideoPlayerLayout();
         
         console.log('Sidebar shown');
     }
@@ -291,93 +222,11 @@ function clearVideoQueue() {
     appState.videoQueue = [];
     saveVideoQueue();
     updateQueueDisplay();
+    updateMiniQueueDisplay();
     updateSidebarQueueDisplay();
     updateMobileQueueBadge();
     updateClearAllButtonState();
     updatePlayNextButtonState();
-}
-
-// Desktop View Toggle Functions
-function toggleDesktopView() {
-    appState.forceDesktopView = !appState.forceDesktopView;
-    localStorage.setItem('forceDesktopView', appState.forceDesktopView);
-    
-    const body = document.body;
-    const toggleButton = document.getElementById('desktop-view-toggle');
-    if (!toggleButton) {
-        // If button is absent (removed from UI), just toggle body class and viewport
-        appState.forceDesktopView = !appState.forceDesktopView;
-        localStorage.setItem('forceDesktopView', appState.forceDesktopView);
-        if (appState.forceDesktopView) {
-            body.classList.add('force-desktop-view');
-            updateViewportMeta(true);
-        } else {
-            body.classList.remove('force-desktop-view');
-            updateViewportMeta(false);
-        }
-        return;
-    }
-    
-    if (appState.forceDesktopView) {
-        body.classList.add('force-desktop-view');
-        toggleButton.classList.add('active');
-        toggleButton.title = 'Switch to Mobile View';
-        
-        // Update viewport meta tag for desktop view
-        updateViewportMeta(true);
-        
-        console.log('Desktop view enabled');
-    } else {
-        body.classList.remove('force-desktop-view');
-        toggleButton.classList.remove('active');
-        toggleButton.title = 'Toggle Desktop View';
-        
-        // Restore original viewport meta tag
-        updateViewportMeta(false);
-        
-        console.log('Mobile view restored');
-    }
-}
-
-function updateViewportMeta(isDesktopView) {
-    const viewportMeta = document.querySelector('meta[name="viewport"]');
-    if (viewportMeta) {
-        if (isDesktopView) {
-            // Force desktop viewport
-            viewportMeta.setAttribute('content', 'width=1200, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
-        } else {
-            // Restore mobile viewport
-            viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover');
-        }
-    }
-}
-
-function initializeDesktopView() {
-    const toggleButton = document.getElementById('desktop-view-toggle');
-    if (!toggleButton) {
-        // Respect persisted state even if button is removed
-        if (appState.forceDesktopView) {
-            document.body.classList.add('force-desktop-view');
-            updateViewportMeta(true);
-        } else {
-            updateViewportMeta(false);
-        }
-        return;
-    }
-
-    if (appState.forceDesktopView) {
-        document.body.classList.add('force-desktop-view');
-        toggleButton.classList.add('active');
-        toggleButton.title = 'Switch to Mobile View';
-        updateViewportMeta(true);
-    } else {
-        toggleButton.title = 'Toggle Desktop View';
-    }
-    
-    // Add click event listener
-    toggleButton.addEventListener('click', toggleDesktopView);
-    
-    console.log('Desktop view toggle initialized:', appState.forceDesktopView);
 }
 
 function getNextQueuedVideo() {
@@ -543,8 +392,7 @@ async function fetchTrendingVideos(region = 'US') {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                // Search for videoke/karaoke content instead of trending videos
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=videoke karaoke&type=video&key=${apiKey}`);
+                const response = await fetch(`https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&regionCode=${region}&maxResults=24&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -562,40 +410,11 @@ async function fetchTrendingVideos(region = 'US') {
                 console.log('API response received:', data);
                 if (data.items && data.items.length > 0) {
                     console.log('Found', data.items.length, 'videos');
-                    
-                    // Convert search results to video format
-                    const videos = data.items.map(item => ({
-                        id: item.id.videoId,
-                        snippet: item.snippet
-                    }));
-                    
-                    // Filter videos to only show those with "videoke" or "karaoke" in the title
-                    const filteredVideos = filterVideokeVideos(videos);
-                    console.log('After videoke/karaoke filter:', filteredVideos.length, 'videos remain');
-                    
-                    if (filteredVideos.length > 0) {
-                        // Track list with filtered results
-                        appState.currentList = filteredVideos.map(v => v.id).filter(Boolean);
+                    // Track list with trending results only when we are actually showing trending
+                    appState.currentList = data.items.map(v => v.id?.videoId || v.id).filter(Boolean);
                     appState.currentIndex = -1;
-                        displayVideos(filteredVideos);
+                    displayVideos(data.items);
                     return; // Success, exit the function
-                    } else {
-                        console.log('No videoke/karaoke videos found in search results');
-                        // Show message that no videoke/karaoke videos were found
-                        const videoContainer = document.getElementById('video-container');
-                        if (videoContainer) {
-                            videoContainer.innerHTML = `
-                                <div class="no-results">
-                                    <h3>No Videoke/Karaoke Videos Found</h3>
-                                    <p>No karaoke videos are currently available. Try searching for specific songs!</p>
-                                    <button onclick="searchVideos('karaoke')" class="retry-button">
-                                        Search Karaoke Videos
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        return;
-                    }
                 } else {
                     console.log('No videos found in API response');
                 }
@@ -787,8 +606,8 @@ function updateQueueDisplay() {
             `;
             
             // Add event listeners
-            const playBtn = queueItem.querySelector('.queue-action-btn.play');
-            const removeBtn = queueItem.querySelector('.queue-action-btn.remove');
+            const playBtn = queueItem.querySelector('.play');
+            const removeBtn = queueItem.querySelector('.remove');
             
             playBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -823,10 +642,6 @@ async function searchVideosForSidebar(query) {
         }
         console.log('Sidebar results container found:', sidebarResultsContainer);
 
-        // Enhance the search query with videoke/karaoke keywords
-        const enhancedQuery = enhanceSearchQuery(query);
-        console.log(`Sidebar - Original query: "${query}" -> Enhanced query: "${enhancedQuery}"`);
-
         // Show loading in sidebar search results
         sidebarResultsContainer.innerHTML = `
             <div class="loading">
@@ -844,7 +659,7 @@ async function searchVideosForSidebar(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Sidebar search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(enhancedQuery)}&type=video&key=${apiKey}`);
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -865,28 +680,10 @@ async function searchVideosForSidebar(query) {
                 
                 // Process and display search results for sidebar
                 if (data.items && data.items.length > 0) {
-                    // Convert search results to video format and filter for videoke videos
-                    const videos = data.items.map(item => ({
-                        id: item.id.videoId,
-                        snippet: item.snippet
-                    }));
-                    
-                    const filteredVideos = filterVideokeVideos(videos);
-                    console.log('Sidebar search results after videoke/karaoke filter:', filteredVideos.length, 'videos remain');
-                    
-                    if (filteredVideos.length > 0) {
-                        filteredVideos.forEach(video => {
-                            // Convert back to search result format for createSidebarSearchCard
-                            const searchItem = {
-                                id: { videoId: video.id },
-                                snippet: video.snippet
-                            };
-                            const sidebarSearchCard = createSidebarSearchCard(searchItem);
+                    data.items.forEach(item => {
+                        const sidebarSearchCard = createSidebarSearchCard(item);
                         sidebarResultsContainer.appendChild(sidebarSearchCard);
                     });
-                    } else {
-                        sidebarResultsContainer.innerHTML = '<div class="no-results">No videoke/karaoke videos found</div>';
-                    }
                 } else {
                     sidebarResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
                 }
@@ -1024,7 +821,6 @@ function updateSidebarQueueDisplay() {
                 <small>Search and add videos to your queue</small>
             </div>
         `;
-        console.log('Empty queue message set');
     } else {
         console.log('Showing queue items:', appState.videoQueue);
         sidebarQueueContainer.innerHTML = '';
@@ -1054,8 +850,8 @@ function updateSidebarQueueDisplay() {
             `;
             
             // Add event listeners
-            const playBtn = sidebarQueueItem.querySelector('.sidebar-queue-action-btn.play');
-            const removeBtn = sidebarQueueItem.querySelector('.sidebar-queue-action-btn.remove');
+            const playBtn = sidebarQueueItem.querySelector('.play');
+            const removeBtn = sidebarQueueItem.querySelector('.remove');
             
             console.log('Setting up sidebar queue item buttons for:', video.title);
             console.log('Play button found:', !!playBtn);
@@ -1140,10 +936,6 @@ async function searchVideos(query) {
         const videoContainer = document.getElementById('video-container');
         if (!videoContainer) return;
 
-        // Enhance the search query with videoke/karaoke keywords
-        const enhancedQuery = enhanceSearchQuery(query);
-        console.log(`Original query: "${query}" -> Enhanced query: "${enhancedQuery}"`);
-
         showLoading();
         videoContainer.innerHTML = `
             <div class="loading">
@@ -1160,7 +952,7 @@ async function searchVideos(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${encodeURIComponent(enhancedQuery)}&type=video&key=${apiKey}`);
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -1185,36 +977,21 @@ async function searchVideos(query) {
                 
                 // Process and display search results
                 if (data.items && data.items.length > 0) {
-                    // Convert search results to video format and filter for videoke videos
-                    const videos = data.items.map(item => ({
+                    // Track current list from search results (by ID) for correct autoplay order
+                    appState.currentList = data.items
+                        .map(item => item && item.id && item.id.videoId)
+                        .filter(Boolean);
+                    appState.currentIndex = -1;
+                    data.items.forEach(item => {
+                        // Convert search result format to video format
+                        const video = {
                             id: item.id.videoId,
                             snippet: item.snippet
-                    }));
-                    
-                    const filteredVideos = filterVideokeVideos(videos);
-                    console.log('Search results after videoke/karaoke filter:', filteredVideos.length, 'videos remain');
-                    
-                    if (filteredVideos.length > 0) {
-                        // Track current list from filtered search results (by ID) for correct autoplay order
-                        appState.currentList = filteredVideos
-                            .map(video => video.id)
-                            .filter(Boolean);
-                        appState.currentIndex = -1;
-                        
-                        filteredVideos.forEach(video => {
+                        };
                         const videoCard = createVideoCard(video);
                         videoGrid.appendChild(videoCard);
                     });
                     videoContainer.appendChild(videoGrid);
-                    } else {
-                        videoContainer.innerHTML = `
-                            <div class="no-results">
-                                <h3>No Videoke/Karaoke Videos Found</h3>
-                                <p>No videos with "videoke" or "karaoke" in the title were found for your search.</p>
-                                <p>Try searching for "videoke" or "karaoke" to find karaoke videos!</p>
-                            </div>
-                        `;
-                    }
                 } else {
                     videoContainer.innerHTML = '<div class="no-results">No videos found</div>';
                 }
@@ -1257,10 +1034,6 @@ async function searchVideosForQueue(query) {
         const searchResultsContainer = document.getElementById('search-results');
         if (!searchResultsContainer) return;
 
-        // Enhance the search query with videoke/karaoke keywords
-        const enhancedQuery = enhanceSearchQuery(query);
-        console.log(`Queue - Original query: "${query}" -> Enhanced query: "${enhancedQuery}"`);
-
         // Show loading in search results
         searchResultsContainer.innerHTML = `
             <div class="loading">
@@ -1278,7 +1051,7 @@ async function searchVideosForQueue(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Queue search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(enhancedQuery)}&type=video&key=${apiKey}`);
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -1299,30 +1072,11 @@ async function searchVideosForQueue(query) {
                 
                 // Process and display search results for queue
                 if (data.items && data.items.length > 0) {
-                    // Convert search results to video format and filter for videoke videos
-                    const videos = data.items.map(item => ({
-                        id: item.id.videoId,
-                        snippet: item.snippet
-                    }));
-                    
-                    const filteredVideos = filterVideokeVideos(videos);
-                    console.log('Queue search results after videoke/karaoke filter:', filteredVideos.length, 'videos remain');
-                    
-                    if (filteredVideos.length > 0) {
-                        // Convert back to search result format for appState.searchResults
-                        const filteredSearchResults = filteredVideos.map(video => ({
-                            id: { videoId: video.id },
-                            snippet: video.snippet
-                        }));
-                        
-                        appState.searchResults = filteredSearchResults;
-                        filteredSearchResults.forEach(item => {
+                    appState.searchResults = data.items;
+                    data.items.forEach(item => {
                         const searchResultCard = createSearchResultCard(item);
                         searchResultsContainer.appendChild(searchResultCard);
                     });
-                    } else {
-                        searchResultsContainer.innerHTML = '<div class="no-results">No videoke/karaoke videos found</div>';
-                    }
                 } else {
                     searchResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
                 }
@@ -1364,10 +1118,6 @@ async function searchVideosForOverlay(query) {
         const overlayResultsContainer = document.getElementById('overlay-search-results');
         if (!overlayResultsContainer) return;
 
-        // Enhance the search query with videoke/karaoke keywords
-        const enhancedQuery = enhanceSearchQuery(query);
-        console.log(`Overlay - Original query: "${query}" -> Enhanced query: "${enhancedQuery}"`);
-
         // Show loading in overlay search results
         overlayResultsContainer.innerHTML = `
             <div class="loading">
@@ -1385,7 +1135,7 @@ async function searchVideosForOverlay(query) {
                 const apiKey = await YOUTUBE_CONFIG.getAPIKey();
                 console.log(`Overlay search attempt ${attempts + 1}/${maxAttempts} with API key index: ${YOUTUBE_CONFIG.getCurrentKeyIndex()}`);
 
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(enhancedQuery)}&type=video&key=${apiKey}`);
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
                 
                 if (response.status === 403) {
                     console.log('API key quota exceeded, marking key as failed and trying next key...');
@@ -1406,28 +1156,10 @@ async function searchVideosForOverlay(query) {
                 
                 // Process and display search results for overlay
                 if (data.items && data.items.length > 0) {
-                    // Convert search results to video format and filter for videoke videos
-                    const videos = data.items.map(item => ({
-                        id: item.id.videoId,
-                        snippet: item.snippet
-                    }));
-                    
-                    const filteredVideos = filterVideokeVideos(videos);
-                    console.log('Overlay search results after videoke/karaoke filter:', filteredVideos.length, 'videos remain');
-                    
-                    if (filteredVideos.length > 0) {
-                        filteredVideos.forEach(video => {
-                            // Convert back to search result format for createOverlaySearchCard
-                            const searchItem = {
-                                id: { videoId: video.id },
-                                snippet: video.snippet
-                            };
-                            const overlaySearchCard = createOverlaySearchCard(searchItem);
+                    data.items.forEach(item => {
+                        const overlaySearchCard = createOverlaySearchCard(item);
                         overlayResultsContainer.appendChild(overlaySearchCard);
                     });
-                    } else {
-                        overlayResultsContainer.innerHTML = '<div class="no-results">No videoke/karaoke videos found</div>';
-                    }
                 } else {
                     overlayResultsContainer.innerHTML = '<div class="no-results">No videos found</div>';
                 }
@@ -1676,7 +1408,7 @@ const voiceSearch = new VoiceSearch();
 document.addEventListener('DOMContentLoaded', function() {
     // Existing search listeners
     const searchInput = document.querySelector('.search-box input');
-    const searchButton = document.querySelector('.search-box .search-btn');
+    const searchButton = document.querySelector('.search-box button:last-child');
 
     // Video search for queue listeners (removed - now using sidebar search)
 
@@ -1835,15 +1567,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Mobile search toggle -> open search overlay
-    if (mobileSearchToggle) {
-        mobileSearchToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            showSearchOverlay('');
-        });
-    }
-
     // Close overlay when clicking outside
     const searchOverlay = document.getElementById('search-overlay');
     if (searchOverlay) {
@@ -1854,9 +1577,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Mobile menu functionality - DISABLED TO PREVENT CONFLICTS WITH sidebar.js
-    // The sidebar.js file handles all mobile toggle functionality
-    /*
+    // Mobile menu functionality
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
     const mobileQueueBadge = document.getElementById('mobile-queue-badge');
@@ -1874,11 +1595,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Mobile menu toggle
     if (mobileMenuToggle && sidebar) {
-        // Add multiple event listeners to ensure it works
-        const handleMenuToggle = (e) => {
+        mobileMenuToggle.addEventListener('click', (e) => {
             try {
                 e.preventDefault();
-                e.stopPropagation();
                 sidebar.classList.toggle('active');
                 // Close queue sidebar if open
                 if (videoQueueSidebar) {
@@ -1888,19 +1607,14 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error toggling mobile menu:', error);
             }
-        };
-        
-        mobileMenuToggle.addEventListener('click', handleMenuToggle);
-        mobileMenuToggle.addEventListener('touchstart', handleMenuToggle);
-        mobileMenuToggle.addEventListener('touchend', handleMenuToggle);
+        });
     } else {
         console.warn('Mobile menu toggle or sidebar not found');
     }
 
     // Mobile queue toggle
     if (mobileQueueToggle && videoQueueSidebar) {
-        // Add multiple event listeners to ensure it works
-        const handleQueueToggle = (e) => {
+        mobileQueueToggle.addEventListener('click', (e) => {
             try {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1932,15 +1646,10 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error toggling mobile queue:', error);
             }
-        };
-        
-        mobileQueueToggle.addEventListener('click', handleQueueToggle);
-        mobileQueueToggle.addEventListener('touchstart', handleQueueToggle);
-        mobileQueueToggle.addEventListener('touchend', handleQueueToggle);
+        });
     } else {
         console.warn('Mobile queue toggle or video queue sidebar not found');
     }
-    */
 
     // Clear all queue button
     const clearAllQueueBtn = document.getElementById('clear-all-queue-btn');
@@ -1960,13 +1669,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (confirmed) {
                     const videoCount = appState.videoQueue.length;
-                    console.log('Clearing all videos from queue, count:', videoCount);
-                    console.log('Queue before clear:', appState.videoQueue);
-                    
+                    console.log('Clearing all videos from queue');
                     clearVideoQueue();
-                    
-                    console.log('Queue after clear:', appState.videoQueue);
-                    console.log('Sidebar queue container:', document.getElementById('sidebar-video-queue'));
                     
                     // Show success message
                     showSuccessMessage(`Cleared ${videoCount} videos from queue`);
@@ -2011,9 +1715,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('Show sidebar button not found');
     }
 
-    // Close sidebars when clicking outside - DISABLED TO PREVENT INTERFERENCE
-    // This was causing sidebars to close automatically
-    /*
+    // Close sidebars when clicking outside
     document.addEventListener('click', (e) => {
         try {
             if (sidebar && mobileMenuToggle && !sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
@@ -2027,13 +1729,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error handling click outside:', error);
         }
     });
-    */
     
-    // Handle window resize to update video player layout
-    window.addEventListener('resize', () => {
-        updateVideoPlayerLayout();
-    });
-
     // Handle mobile queue sidebar close button
     if (videoQueueSidebar) {
         const queueHeader = videoQueueSidebar.querySelector('.queue-sidebar-header');
@@ -2123,6 +1819,77 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // Smart TV Remote Control Navigation
+    let currentFocusIndex = 0;
+    let focusableElements = [];
+    
+    function updateFocusableElements() {
+        focusableElements = Array.from(document.querySelectorAll(
+            '.video-card, .control-button, .sidebar-add-to-queue-btn, .sidebar-play-now-btn, .search-box input, .voice-search-btn, .sidebar-search-input, .sidebar-search-btn, .sidebar-voice-btn, .clear-all-btn, .hide-sidebar-btn'
+        )).filter(el => !el.disabled && !el.hidden && el.offsetParent !== null);
+    }
+    
+    function setFocus(index) {
+        if (focusableElements.length === 0) return;
+        
+        // Remove previous focus
+        focusableElements.forEach(el => el.classList.remove('smart-tv-focused'));
+        
+        // Set new focus
+        currentFocusIndex = Math.max(0, Math.min(index, focusableElements.length - 1));
+        const focusedElement = focusableElements[currentFocusIndex];
+        focusedElement.classList.add('smart-tv-focused');
+        focusedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    function handleSmartTVNavigation(e) {
+        // Only handle navigation on very large screens (Smart TV)
+        if (window.innerWidth < 2560) return;
+        
+        switch(e.key) {
+            case 'ArrowUp':
+                e.preventDefault();
+                setFocus(currentFocusIndex - 1);
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                setFocus(currentFocusIndex + 1);
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                setFocus(currentFocusIndex - 1);
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                setFocus(currentFocusIndex + 1);
+                break;
+            case 'Enter':
+            case ' ':
+                e.preventDefault();
+                const focusedElement = focusableElements[currentFocusIndex];
+                if (focusedElement) {
+                    focusedElement.click();
+                }
+                break;
+        }
+    }
+    
+    // Initialize Smart TV navigation
+    document.addEventListener('keydown', handleSmartTVNavigation);
+    
+    // Update focusable elements when content changes
+    const observer = new MutationObserver(() => {
+        updateFocusableElements();
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    
+    // Initialize on page load
+    updateFocusableElements();
 });
 
 // Make functions globally available
@@ -2807,24 +2574,6 @@ function closeVideoPlayer() {
     if (videoPlayerContainer) {
         videoPlayerContainer.classList.add('hidden');
         document.body.style.overflow = 'auto';
-        updateVideoPlayerLayout();
-        
-        // Remove navbar overlay when video player is closed
-        removeNavbarOverlay();
-        
-        // Reset mobile sidebar behavior when video player is closed
-        if (window.innerWidth <= 768) {
-            // Ensure any mobile sidebar overlays are cleaned up
-            const overlay = document.querySelector('.sidebar-overlay');
-            if (overlay && overlay.parentNode) {
-                overlay.classList.remove('active');
-                setTimeout(() => {
-                    if (overlay.parentNode) {
-                        document.body.removeChild(overlay);
-                    }
-                }, 300);
-            }
-        }
     }
     // Reset player state
     isPlaying = false;
@@ -2838,98 +2587,7 @@ function showVideoPlayer() {
     if (videoPlayerContainer) {
         videoPlayerContainer.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        updateVideoPlayerLayout();
-        
-        // Create a transparent overlay for navbar area on mobile
-        if (window.innerWidth <= 768) {
-            createNavbarOverlay();
-            // Force mobile toggle buttons to work
-            forceMobileToggleButtons();
-        }
-        
-        // Ensure mobile toggle buttons are accessible when video player is active
-        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-        const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
-        
-        if (mobileMenuToggle) {
-            mobileMenuToggle.style.zIndex = '3000';
-            mobileMenuToggle.style.position = 'relative';
-            mobileMenuToggle.style.pointerEvents = 'auto';
-            mobileMenuToggle.style.touchAction = 'manipulation';
-        }
-        
-        if (mobileQueueToggle) {
-            mobileQueueToggle.style.zIndex = '3000';
-            mobileQueueToggle.style.position = 'relative';
-            mobileQueueToggle.style.pointerEvents = 'auto';
-            mobileQueueToggle.style.touchAction = 'manipulation';
-        }
-        
-        // Hide mobile queue sidebar when video starts playing
-        if (window.innerWidth <= 768) {
-            const videoQueueSidebar = document.querySelector('.video-queue-sidebar');
-            if (videoQueueSidebar && videoQueueSidebar.classList.contains('active')) {
-                videoQueueSidebar.classList.remove('active');
-                // Also remove any overlay
-                const overlay = document.querySelector('.sidebar-overlay');
-                if (overlay) {
-                    overlay.classList.remove('active');
-                    setTimeout(() => {
-                        if (overlay.parentNode) {
-                            document.body.removeChild(overlay);
-                        }
-                    }, 300);
-                }
-            }
-        }
     }
-}
-
-function updateVideoPlayerLayout() {
-    const videoPlayerContainer = document.getElementById('video-player-container');
-    const leftSidebar = document.querySelector('.sidebar');
-    const rightSidebar = document.querySelector('.video-queue-sidebar');
-    
-    // Ensure mobile toggle buttons are accessible when video player is active
-    if (videoPlayerContainer && !videoPlayerContainer.classList.contains('hidden')) {
-        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-        const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
-        
-        if (mobileMenuToggle) {
-            mobileMenuToggle.style.zIndex = '3000';
-            mobileMenuToggle.style.position = 'relative';
-            mobileMenuToggle.style.pointerEvents = 'auto';
-            mobileMenuToggle.style.touchAction = 'manipulation';
-        }
-        
-        if (mobileQueueToggle) {
-            mobileQueueToggle.style.zIndex = '3000';
-            mobileQueueToggle.style.position = 'relative';
-            mobileQueueToggle.style.pointerEvents = 'auto';
-            mobileQueueToggle.style.touchAction = 'manipulation';
-        }
-    }
-    
-    if (!videoPlayerContainer) return;
-    
-    // Remove all sidebar-related classes first
-    videoPlayerContainer.classList.remove('sidebar-hidden', 'left-sidebar-hidden', 'both-sidebars-hidden');
-    
-    // Check sidebar visibility
-    const isLeftSidebarVisible = leftSidebar && !leftSidebar.classList.contains('collapsed') && 
-                                 window.innerWidth > 768 && !leftSidebar.classList.contains('hidden');
-    const isRightSidebarVisible = rightSidebar && !rightSidebar.classList.contains('hidden') && 
-                                  window.innerWidth > 768;
-    
-    // Apply appropriate class based on sidebar visibility
-    if (!isLeftSidebarVisible && !isRightSidebarVisible) {
-        videoPlayerContainer.classList.add('both-sidebars-hidden');
-    } else if (!isLeftSidebarVisible && isRightSidebarVisible) {
-        videoPlayerContainer.classList.add('left-sidebar-hidden');
-    } else if (isLeftSidebarVisible && !isRightSidebarVisible) {
-        videoPlayerContainer.classList.add('sidebar-hidden');
-    }
-    // If both are visible, no additional class is needed (default layout)
 }
 
 function playVideo(videoId) {
@@ -3151,173 +2809,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Starting fetchTrendingVideos...');
         fetchTrendingVideos('US');
     }, 100);
-    
-    // Initialize mobile optimizations
-    initializeMobileOptimizations();
-    
-    // Initialize desktop view toggle
-    initializeDesktopView();
 });
-
-// Mobile-specific optimizations
-function initializeMobileOptimizations() {
-    console.log('Initializing mobile optimizations...');
-    
-    // Prevent zoom on double tap for iOS
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function (event) {
-        const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-        }
-        lastTouchEnd = now;
-    }, false);
-    
-    // Add touch feedback for interactive elements
-    const addTouchFeedback = () => {
-        const touchElements = document.querySelectorAll('.video-card, .control-button, .sidebar-queue-action-btn, .queue-action-btn, .mobile-menu-toggle, .mobile-queue-toggle, .sidebar-add-to-queue-btn, .sidebar-play-now-btn');
-        touchElements.forEach(element => {
-            element.addEventListener('touchstart', function() {
-                this.style.transform = 'scale(0.98)';
-                this.style.transition = 'transform 0.1s ease';
-            });
-            
-            element.addEventListener('touchend', function() {
-                this.style.transform = 'scale(1)';
-            });
-            
-            element.addEventListener('touchcancel', function() {
-                this.style.transform = 'scale(1)';
-            });
-        });
-    };
-    
-    // Add touch feedback to existing elements
-    addTouchFeedback();
-    
-    // Add touch feedback to dynamically created elements
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList') {
-                mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1) { // Element node
-                        if (node.classList && (node.classList.contains('video-card') || node.classList.contains('sidebar-queue-item'))) {
-                            addTouchFeedback();
-                        }
-                    }
-                });
-            }
-        });
-    });
-    
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-    
-    // Improve mobile scrolling performance
-    document.body.style.webkitOverflowScrolling = 'touch';
-    
-    // Handle mobile orientation changes
-    window.addEventListener('orientationchange', function() {
-        setTimeout(function() {
-            // Recalculate video player dimensions
-            const videoPlayer = document.getElementById('video-player');
-            if (videoPlayer) {
-                videoPlayer.style.height = window.innerHeight + 'px';
-            }
-            
-            // Recalculate sidebar dimensions
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar) {
-                sidebar.style.height = window.innerHeight + 'px';
-            }
-        }, 100);
-    });
-    
-    // Add pull-to-refresh functionality for mobile
-    let startY = 0;
-    let currentY = 0;
-    let isPulling = false;
-    
-    document.addEventListener('touchstart', function(e) {
-        if (window.scrollY === 0) {
-            startY = e.touches[0].clientY;
-            isPulling = true;
-        }
-    });
-    
-    document.addEventListener('touchmove', function(e) {
-        if (isPulling && window.scrollY === 0) {
-            currentY = e.touches[0].clientY;
-            const pullDistance = currentY - startY;
-            
-            if (pullDistance > 0 && pullDistance < 100) {
-                // Add visual feedback for pull-to-refresh
-                document.body.style.transform = `translateY(${pullDistance * 0.5}px)`;
-            }
-        }
-    });
-    
-    document.addEventListener('touchend', function(e) {
-        if (isPulling) {
-            const pullDistance = currentY - startY;
-            
-            if (pullDistance > 80) {
-                // Trigger refresh
-                location.reload();
-            } else {
-                // Reset position
-                document.body.style.transform = 'translateY(0)';
-            }
-            
-            isPulling = false;
-        }
-    });
-    
-    // Optimize video loading for mobile
-    const optimizeVideoLoading = () => {
-        const videoCards = document.querySelectorAll('.video-card');
-        videoCards.forEach(card => {
-            const thumbnail = card.querySelector('.video-thumbnail');
-            if (thumbnail) {
-                // Add loading="lazy" for better performance
-                thumbnail.loading = 'lazy';
-                
-                // Add error handling for failed image loads
-                thumbnail.addEventListener('error', function() {
-                    this.src = 'images/placeholder.jpg';
-                });
-            }
-        });
-    };
-    
-    // Run optimization when videos are loaded
-    setTimeout(optimizeVideoLoading, 1000);
-    
-    // Re-run optimization when new videos are added
-    const videoObserver = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList') {
-                mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1 && node.classList && node.classList.contains('video-card')) {
-                        optimizeVideoLoading();
-                    }
-                });
-            }
-        });
-    });
-    
-    const videoContainer = document.getElementById('video-container');
-    if (videoContainer) {
-        videoObserver.observe(videoContainer, {
-            childList: true,
-            subtree: true
-        });
-    }
-    
-    console.log('Mobile optimizations initialized successfully');
-}
 
 // Also try immediately
 console.log('Trying immediate fetchTrendingVideos...');
@@ -3371,111 +2863,3 @@ window.testDisplayVideos = function() {
     console.log('Testing displayVideos with test data...');
     displayVideos(testVideos);
 };
-
-// Navbar overlay functions for mobile video player
-function createNavbarOverlay() {
-    // Remove existing overlay if any
-    removeNavbarOverlay();
-    
-    // Create a transparent overlay that allows navbar touch events
-    const overlay = document.createElement('div');
-    overlay.id = 'navbar-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-        background: transparent;
-        pointer-events: none;
-        z-index: 1;
-    `;
-    
-    document.body.appendChild(overlay);
-    console.log('Navbar overlay created');
-}
-
-function removeNavbarOverlay() {
-    const overlay = document.getElementById('navbar-overlay');
-    if (overlay) {
-        overlay.remove();
-        console.log('Navbar overlay removed');
-    }
-}
-
-function forceMobileToggleButtons() {
-    // DISABLED TO PREVENT CONFLICTS WITH sidebar.js
-    // The sidebar.js file handles all mobile toggle functionality
-    console.log('forceMobileToggleButtons disabled to prevent conflicts');
-    return;
-    
-    /*
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const mobileQueueToggle = document.getElementById('mobile-queue-toggle');
-    
-    if (mobileMenuToggle) {
-        // Force the button to be clickable
-        mobileMenuToggle.style.cssText = `
-            z-index: 9999 !important;
-            position: fixed !important;
-            pointer-events: auto !important;
-            touch-action: manipulation !important;
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 2px solid rgba(255, 255, 255, 0.3) !important;
-        `;
-        
-        // Remove existing event listeners to avoid conflicts
-        mobileMenuToggle.replaceWith(mobileMenuToggle.cloneNode(true));
-        const newMobileMenuToggle = document.getElementById('mobile-menu-toggle');
-        
-        // Add a direct click handler that bypasses any blocking
-        if (newMobileMenuToggle) {
-            newMobileMenuToggle.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const sidebar = document.querySelector('.sidebar');
-                if (sidebar) {
-                    sidebar.classList.toggle('active');
-                    console.log('Mobile menu toggled via force function');
-                }
-            };
-        }
-    }
-    
-    if (mobileQueueToggle) {
-        // Force the button to be clickable
-        mobileQueueToggle.style.cssText = `
-            z-index: 9999 !important;
-            position: fixed !important;
-            pointer-events: auto !important;
-            touch-action: manipulation !important;
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 2px solid rgba(255, 255, 255, 0.3) !important;
-        `;
-        
-        // Remove existing event listeners to avoid conflicts
-        mobileQueueToggle.replaceWith(mobileQueueToggle.cloneNode(true));
-        const newMobileQueueToggle = document.getElementById('mobile-queue-toggle');
-        
-        // Add a direct click handler that bypasses any blocking
-        if (newMobileQueueToggle) {
-            newMobileQueueToggle.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const videoQueueSidebar = document.querySelector('.video-queue-sidebar');
-                if (videoQueueSidebar) {
-                    const isActive = videoQueueSidebar.classList.contains('active');
-                    if (isActive) {
-                        videoQueueSidebar.classList.remove('active');
-                        document.body.style.overflow = 'auto';
-                    } else {
-                        videoQueueSidebar.classList.add('active');
-                        document.body.style.overflow = 'hidden';
-                    }
-                    console.log('Mobile queue toggled via force function');
-                }
-            };
-        }
-    }
-    */
-}
