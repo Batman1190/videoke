@@ -1763,6 +1763,13 @@ body {
     -webkit-touch-callout: none !important;
     -webkit-user-select: none !important;
     user-select: none !important;
+    /* Additional mobile touch improvements */
+    -webkit-touch-callout: none !important;
+    -webkit-user-drag: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
 }
 
 .video-player-container.hidden {
@@ -3016,9 +3023,17 @@ body {
         display: none !important;
     }
     
-    /* Ensure mobile queue toggle is always visible when sidebar is hidden */
+    /* Ensure mobile queue toggle is always visible and clickable */
     .mobile-queue-toggle {
         display: flex !important;
+        z-index: 10000 !important;
+        position: relative !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 2px solid rgba(255, 255, 255, 0.4) !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
     }
     
     /* Mobile queue sidebar close button */
