@@ -8,6 +8,7 @@ const closePlayerBtn = document.getElementById('close-player');
 const searchInput = document.querySelector('.search-box input');
 const searchButton = document.querySelector('.search-box .search-btn');
 const loadingSpinner = document.getElementById('loading');
+const mobileSearchToggle = document.getElementById('mobile-search-toggle');
 
 // App State
 const appState = {
@@ -1792,6 +1793,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     searchVideosForOverlay(query);
                 }
             }
+        });
+    }
+
+    // Mobile search toggle -> open search overlay
+    if (mobileSearchToggle) {
+        mobileSearchToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showSearchOverlay('');
         });
     }
 
