@@ -429,9 +429,11 @@ async function fetchTrendingVideos(region = 'US') {
                     let filteredItems = data.items.filter(itemMatchesKaraokeOrVideoke);
                     console.log('Found', data.items.length, 'videos, filtered to', filteredItems.length);
 
-                    // Strict mode: if no matches, show an empty state
+                    // Strict mode: if no matches, fetch a random karaoke/videoke set
                     if (!filteredItems || filteredItems.length === 0) {
-                        console.log('No karaoke/videoke matches in trending; showing empty state');
+                        console.log('No karaoke/videoke matches in trending; loading random karaoke/videoke videos...');
+                        await fetchRandomKaraokeVideos(region);
+                        return;
                     }
 
                     // Track list with trending results only when we are actually showing trending
@@ -468,6 +470,64 @@ async function fetchTrendingVideos(region = 'US') {
                     </button>
                 </div>
             `;
+        }
+    }
+}
+
+// Fallback: fetch random karaoke/videoke videos when trending has no strict matches
+async function fetchRandomKaraokeVideos(region = 'US') {
+    try {
+        const videoContainer = document.getElementById('video-container');
+        if (!videoContainer) return;
+        videoContainer.innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        `;
+
+        let attempts = 0;
+        const maxAttempts = Math.min(5, YOUTUBE_CONFIG.getKeyCount());
+        let lastError = null;
+
+        // Build a random karaoke query seed
+        const seeds = ['karaoke', 'videoke', 'karaoke hits', 'OPM karaoke', 'instrumental karaoke'];
+        const seed = seeds[Math.floor(Math.random() * seeds.length)];
+
+        while (attempts < maxAttempts) {
+            try {
+                const apiKey = await YOUTUBE_CONFIG.getAPIKey();
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${encodeURIComponent(seed)}&type=video&key=${apiKey}`);
+
+                if (response.status === 403) {
+                    YOUTUBE_CONFIG.markKeyAsFailed(YOUTUBE_CONFIG.getCurrentKeyIndex());
+                    lastError = 'API key quota exceeded';
+                    attempts++;
+                    continue;
+                }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                const filtered = (data.items || []).filter(itemMatchesKaraokeOrVideoke);
+                appState.currentList = filtered.map(i => i.id?.videoId).filter(Boolean);
+                appState.currentIndex = -1;
+
+                // Convert search result format to video format expected by displayVideos
+                const videos = filtered.map(item => ({ id: item.id.videoId, snippet: item.snippet }));
+                displayVideos(videos);
+                return;
+            } catch (err) {
+                lastError = err.message;
+                attempts++;
+            }
+        }
+
+        // If all attempts fail, show no results state
+        videoContainer.innerHTML = '<div class="no-results">No videos available</div>';
+    } catch (_) {
+        const videoContainer = document.getElementById('video-container');
+        if (videoContainer) {
+            videoContainer.innerHTML = '<div class="no-results">No videos available</div>';
         }
     }
 }
