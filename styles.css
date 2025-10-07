@@ -1776,7 +1776,8 @@ body {
 
 /* Mobile toggle buttons - consolidated rules */
 .navbar .mobile-menu-toggle,
-.navbar .mobile-queue-toggle {
+.navbar .mobile-queue-toggle,
+.navbar .mobile-search-toggle { /* include search toggle */
     z-index: 9999 !important;
     position: relative !important;
     pointer-events: auto !important;
@@ -2251,8 +2252,10 @@ body {
         font-size: 16px;
         margin: 0 8px;
         white-space: nowrap;
-        flex-shrink: 0;
-        max-width: none;
+        overflow: hidden; /* ensure truncation */
+        text-overflow: ellipsis; /* ensure truncation */
+        flex: 1 1 auto; /* allow title to shrink */
+        max-width: 140px; /* avoid overlapping right buttons */
         font-weight: 600;
     }
 
@@ -2265,6 +2268,7 @@ body {
         display: flex;
         align-items: center;
         gap: 8px;
+        flex-shrink: 0; /* keep buttons visible */
     }
 
     .container {
@@ -2321,10 +2325,12 @@ body {
     }
 
     .nav-left .site-title {
-        font-size: 18px;
+        font-size: 16px; /* slightly smaller to fit */
         white-space: nowrap;
-        flex-shrink: 0;
-        max-width: none;
+        overflow: hidden; /* ensure truncation */
+        text-overflow: ellipsis; /* ensure truncation */
+        flex: 1 1 auto; /* allow title to shrink */
+        max-width: 120px; /* avoid overlapping right buttons */
         margin-left: 8px;
     }
 
@@ -2343,6 +2349,7 @@ body {
 
     .nav-right {
         margin: 8px 0;
+        flex-shrink: 0; /* keep buttons visible */
     }
 
     .container {
@@ -3494,7 +3501,8 @@ body {
     
     /* Consolidated mobile toggle button rules - single source of truth */
     .navbar .mobile-menu-toggle,
-    .navbar .mobile-queue-toggle {
+    .navbar .mobile-queue-toggle,
+    .navbar .mobile-search-toggle { /* include search toggle */
         z-index: 9999 !important;
         position: relative !important;
         pointer-events: auto !important;
@@ -3504,8 +3512,10 @@ body {
     /* When video player is active, make buttons even more prominent */
     .video-player-container:not(.hidden) .navbar .mobile-menu-toggle,
     .video-player-container:not(.hidden) .navbar .mobile-queue-toggle,
+    .video-player-container:not(.hidden) .navbar .mobile-search-toggle,
     body:has(.video-player-container:not(.hidden)) .navbar .mobile-menu-toggle,
-    body:has(.video-player-container:not(.hidden)) .navbar .mobile-queue-toggle {
+    body:has(.video-player-container:not(.hidden)) .navbar .mobile-queue-toggle,
+    body:has(.video-player-container:not(.hidden)) .navbar .mobile-search-toggle {
         z-index: 9999 !important;
         position: relative !important;
         pointer-events: auto !important;
